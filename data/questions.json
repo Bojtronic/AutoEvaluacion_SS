@@ -1,0 +1,221 @@
+[
+  {
+    "id": 1,
+    "topic": "Sistemas Operativos",
+    "question": "¿Cuál es la función principal del Administrador de tareas en Windows?",
+    "options": [
+      "Instalar controladores de hardware",
+      "Monitorear y finalizar procesos en ejecución",
+      "Configurar cuentas de usuario",
+      "Administrar discos duros",
+      "Actualizar el sistema operativo",
+      "Gestionar impresoras",
+      "Cambiar la resolución de pantalla",
+      "Configurar la red",
+      "Modificar el registro de Windows",
+      "Realizar copias de seguridad"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "id": 2,
+    "topic": "Sistemas Operativos",
+    "question": "¿Qué comando se utiliza comúnmente en Linux para listar archivos y directorios?",
+    "options": [
+      "list",
+      "dir",
+      "ls",
+      "show",
+      "tree",
+      "pwd",
+      "cat",
+      "cd",
+      "rm",
+      "find"
+    ],
+    "correctIndex": 2
+  },
+  {
+    "id": 3,
+    "topic": "Sistemas Operativos",
+    "question": "¿Qué sistema de archivos es usado comúnmente por macOS?",
+    "options": [
+      "NTFS",
+      "FAT32",
+      "exFAT",
+      "APFS",
+      "EXT4",
+      "HFS+",
+      "ReFS",
+      "XFS",
+      "ZFS",
+      "ISO9660"
+    ],
+    "correctIndex": 3
+  },
+
+  {
+    "id": 4,
+    "topic": "Redes",
+    "question": "¿Cuál es la función principal de un router en una red?",
+    "options": [
+      "Asignar direcciones MAC",
+      "Conectar dispositivos dentro de la misma red",
+      "Enrutar paquetes entre diferentes redes",
+      "Proveer energía a los dispositivos",
+      "Convertir señales analógicas a digitales",
+      "Almacenar datos de red",
+      "Proteger físicamente la red",
+      "Monitorear el uso de CPU",
+      "Crear redes virtuales",
+      "Controlar impresoras de red"
+    ],
+    "correctIndex": 2
+  },
+  {
+    "id": 5,
+    "topic": "Redes",
+    "question": "¿Qué protocolo se utiliza para asignar direcciones IP automáticamente?",
+    "options": [
+      "DNS",
+      "HTTP",
+      "FTP",
+      "DHCP",
+      "SMTP",
+      "SNMP",
+      "ICMP",
+      "ARP",
+      "HTTPS",
+      "POP3"
+    ],
+    "correctIndex": 3
+  },
+  {
+    "id": 6,
+    "topic": "Redes",
+    "question": "¿Cuál es el rango de direcciones IP privadas de la clase C?",
+    "options": [
+      "10.0.0.0 – 10.255.255.255",
+      "172.16.0.0 – 172.31.255.255",
+      "192.168.0.0 – 192.168.255.255",
+      "169.254.0.0 – 169.254.255.255",
+      "127.0.0.0 – 127.255.255.255",
+      "224.0.0.0 – 239.255.255.255",
+      "1.0.0.0 – 1.255.255.255",
+      "100.64.0.0 – 100.127.255.255",
+      "198.18.0.0 – 198.19.255.255",
+      "240.0.0.0 – 255.255.255.255"
+    ],
+    "correctIndex": 2
+  },
+
+  {
+    "id": 7,
+    "topic": "Programación",
+    "question": "¿Cuál es un principio fundamental de la programación orientada a objetos?",
+    "options": [
+      "Compilación",
+      "Abstracción",
+      "Interpretación",
+      "Secuencialidad",
+      "Optimización",
+      "Paralelismo",
+      "Recursividad",
+      "Tipado dinámico",
+      "Versionado",
+      "Depuración"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "id": 8,
+    "topic": "Programación",
+    "question": "¿Cuál de los siguientes lenguajes es principalmente orientado a objetos?",
+    "options": [
+      "C",
+      "Java",
+      "Assembly",
+      "Bash",
+      "SQL",
+      "HTML",
+      "CSS",
+      "PowerShell",
+      "Lua",
+      "R"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "id": 9,
+    "topic": "Programación",
+    "question": "¿Qué herramienta se utiliza comúnmente para el control de versiones?",
+    "options": [
+      "Docker",
+      "Git",
+      "Jenkins",
+      "Postman",
+      "Node.js",
+      "Webpack",
+      "NPM",
+      "Visual Studio Code",
+      "Eclipse",
+      "IntelliJ"
+    ],
+    "correctIndex": 1
+  },
+
+  {
+    "id": 10,
+    "topic": "Soporte Técnico",
+    "question": "¿Cuál es el primer paso recomendado al diagnosticar un equipo que no enciende?",
+    "options": [
+      "Reinstalar el sistema operativo",
+      "Verificar la conexión eléctrica",
+      "Actualizar la BIOS",
+      "Cambiar el disco duro",
+      "Formatear el equipo",
+      "Reemplazar la memoria RAM",
+      "Instalar nuevos controladores",
+      "Cambiar la tarjeta madre",
+      "Actualizar aplicaciones",
+      "Ejecutar antivirus"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "id": 11,
+    "topic": "Soporte Técnico",
+    "question": "¿Qué componente es responsable de almacenar datos de forma permanente?",
+    "options": [
+      "CPU",
+      "RAM",
+      "Tarjeta madre",
+      "Disco duro",
+      "Fuente de poder",
+      "Tarjeta gráfica",
+      "Ventilador",
+      "Caché",
+      "BIOS",
+      "Chipset"
+    ],
+    "correctIndex": 3
+  },
+  {
+    "id": 12,
+    "topic": "Soporte Técnico",
+    "question": "¿Cuál es una causa común de sobrecalentamiento en una computadora?",
+    "options": [
+      "Demasiada memoria RAM",
+      "Fuente de poder nueva",
+      "Ventiladores obstruidos por polvo",
+      "Sistema operativo actualizado",
+      "Uso de SSD",
+      "Conexión a internet lenta",
+      "Monitor de alta resolución",
+      "Teclado defectuoso",
+      "Mouse inalámbrico",
+      "BIOS actualizada"
+    ],
+    "correctIndex": 2
+  }
+]
