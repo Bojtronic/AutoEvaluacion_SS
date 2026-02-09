@@ -101,7 +101,7 @@ function generatePDF() {
 
     // Redirigir al inicio después de descargar
     setTimeout(() => {
-        window.location.href = "/index.html";
+        window.location.href = "../index.html";
     }, 500);
 }
 
