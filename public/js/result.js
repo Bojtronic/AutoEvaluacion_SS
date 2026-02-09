@@ -1,23 +1,45 @@
+// Obtener resultados del localStorage
+const evaluationData = JSON.parse(
+    localStorage.getItem("quizResults")
+) || [];
+
+// Elementos del DOM
 const resultsContainer = document.getElementById("resultsContainer");
 const finalScoreEl = document.getElementById("finalScore");
 const downloadPdfBtn = document.getElementById("downloadPdfBtn");
 
-// Datos simulados (luego vienen del quiz)
-const evaluationData = JSON.parse(localStorage.getItem("quizResults")) || [];
+// Validación básica
+if (evaluationData.length === 0) {
+    finalScoreEl.textContent = "No hay resultados para mostrar.";
+    downloadPdfBtn.disabled = true;
+}
 
 // Calcular puntaje
 function calculateScore() {
+    const total = evaluationData.length;
     const correct = evaluationData.filter(q => q.isCorrect).length;
+    const grade = total > 0
+        ? Math.round((correct / total) * 100)
+        : 0;
+
     return {
+        total,
         correct,
-        total: evaluationData.length
+        grade
     };
 }
 
 // Mostrar resultados en pantalla
 function renderResults() {
     const score = calculateScore();
-    finalScoreEl.textContent = `Resultado: ${score.correct} / ${score.total}`;
+
+    finalScoreEl.innerHTML = `
+        Resultado: ${score.correct} / ${score.total}
+        <br>
+        <strong>Nota final: ${score.grade}%</strong>
+    `;
+
+    resultsContainer.innerHTML = "";
 
     evaluationData.forEach((q, index) => {
         const card = document.createElement("div");
@@ -39,16 +61,20 @@ function generatePDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
+    const score = calculateScore();
     let y = 15;
+
     doc.setFontSize(14);
     doc.text("Security Software - Resultados de Evaluación", 10, y);
 
     y += 10;
-    const score = calculateScore();
     doc.setFontSize(12);
     doc.text(`Resultado final: ${score.correct} / ${score.total}`, 10, y);
 
-    y += 10;
+    y += 8;
+    doc.text(`Nota final: ${score.grade}%`, 10, y);
+
+    y += 12;
 
     evaluationData.forEach((q, index) => {
         if (y > 270) {
@@ -70,8 +96,15 @@ function generatePDF() {
         y += 10;
     });
 
+    // Descargar PDF
     doc.save("resultado_evaluacion_security_software.pdf");
+
+    // Redirigir al inicio después de descargar
+    setTimeout(() => {
+        window.location.href = "/index.html";
+    }, 500);
 }
+
 
 // Eventos
 downloadPdfBtn.addEventListener("click", generatePDF);

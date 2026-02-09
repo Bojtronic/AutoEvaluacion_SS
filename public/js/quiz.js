@@ -137,13 +137,32 @@ function getRandomOptions(question, totalOptions = 5) {
 
 // Botón siguiente
 nextBtn.addEventListener("click", () => {
+
+    const group = groupedQuestions[currentGroupIndex];
+
+    const unanswered = group.questions.some(q =>
+        !userAnswers.find(ans => ans.questionId === q.id)
+    );
+
+    if (unanswered) {
+        alert("Debes responder todas las preguntas antes de continuar.");
+        return;
+    }
+
     if (currentGroupIndex < groupedQuestions.length - 1) {
         currentGroupIndex++;
         showCurrentGroup();
     } else {
+        // Guardar respuestas
+        localStorage.setItem(
+            "quizResults",
+            JSON.stringify(userAnswers)
+        );
+
         window.location.href = "/html/result.html";
     }
 });
+
 
 // Inicializar
 loadQuestions();
