@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administrador | Security Software</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+    <header>
+        <h1>Panel de Administrador</h1>
+        <button id="logoutBtn">Cerrar Sesión</button>
+    </header>
+
+    <main>
+        <h2>Bienvenido, <span id="adminName"></span></h2>
+        <p>Desde aquí puedes gestionar evaluaciones y usuarios.</p>
+    </main>
+
+    <script>
+        const role = localStorage.getItem("role");
+
+        if (role !== "admin") {
+            window.location.href = "login.html";
+        }
+
+        document.getElementById("adminName").textContent =
+            localStorage.getItem("username");
+
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            localStorage.clear();
+            window.location.href = "login.html";
+        });
+    </script>
+
+</body>
+</html>
