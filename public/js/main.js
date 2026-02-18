@@ -1,6 +1,6 @@
 const carouselTrack = document.getElementById("carouselTrack");
 const items = document.querySelectorAll(".carousel-item");
-const startBtn = document.getElementById("startTestBtn");
+const startBtn = document.getElementById("startBtn");
 
 let currentIndex = 0;
 const totalItems = items.length;
@@ -23,5 +23,5 @@ setInterval(nextSlide, 4000);
 
 // Redirección a la página del test
 startBtn.addEventListener("click", () => {
-    window.location.href = "/html/quiz.html";
+    window.location.href = "/html/login.html";
 });
