@@ -14,7 +14,7 @@
     <aside class="sidebar">
         <h2>Security Software</h2>
         <nav>
-            <ul>
+            <ul id="menuList">
                 <li data-section="dashboard" class="active">Dashboard</li>
                 <li data-section="topics">Temas</li>
                 <li data-section="questions">Preguntas</li>
@@ -96,7 +96,7 @@
             <div class="exam-builder">
 
                 <label>Nombre del Examen</label>
-                <input type="text" id="examName">
+                <input type="text" id="examName" placeholder="Ingrese nombre del examen">
 
                 <h3>Seleccionar Temas</h3>
                 <div id="topicsChecklist"></div>
@@ -107,7 +107,9 @@
                 <h3>Seleccionar Preguntas Específicas</h3>
                 <div id="specificQuestionsContainer"></div>
 
-                <button id="saveExamBtn" class="btn-primary">Guardar Examen</button>
+                <button id="saveExamBtn" class="btn-primary">
+                    Guardar Examen
+                </button>
 
             </div>
         </section>
@@ -159,7 +161,7 @@
 <!-- Overlay -->
 <div id="modalOverlay" class="modal-overlay hidden"></div>
 
-<!-- Modal Base -->
+<!-- Modal -->
 <div id="modal" class="modal hidden">
     <div class="modal-header">
         <h2 id="modalTitle"></h2>
