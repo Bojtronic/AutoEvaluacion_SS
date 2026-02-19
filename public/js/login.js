@@ -19,12 +19,14 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                user: username,
+                username: username,
                 password: password
             })
         });
 
         const data = await response.json();
+
+        console.log(data);
 
         if (!response.ok || !data.success) {
             errorMsg.textContent = data.message || "Credenciales incorrectas.";

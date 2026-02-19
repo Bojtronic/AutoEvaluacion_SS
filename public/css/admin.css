@@ -79,6 +79,11 @@ body {
     display: block;
 }
 
+#menuList li.active {
+    background-color: #1f2937;
+    color: white;
+}
+
 /* Cards */
 .cards {
     display: flex;

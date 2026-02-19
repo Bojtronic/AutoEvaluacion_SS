@@ -77,7 +77,6 @@ async function loadTopics() {
                 <tr>
                     <td>${topic.name}</td>
                     <td>${topic.description || ""}</td>
-                    <td>${topic.active ? "Activo" : "Inactivo"}</td>
                     <td>
                         <button onclick="editTopic(${topic.id})">Editar</button>
                     </td>
@@ -209,8 +208,7 @@ document.getElementById("addQuestionBtn")
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         topic_id,
-                        question_text,
-                        options: optionList
+                        question_text
                     })
                 });
 
@@ -300,11 +298,52 @@ document.getElementById("logoutBtn")
         window.location.href = "login.html";
     });
 
+// ================== NAVEGACIÓN ==================
+const menuItems = document.querySelectorAll("#menuList li");
+const sections = document.querySelectorAll(".section");
+
+menuItems.forEach(item => {
+    item.addEventListener("click", () => {
+
+        // Quitar active del menú
+        menuItems.forEach(i => i.classList.remove("active"));
+        item.classList.add("active");
+
+        // Ocultar todas las secciones
+        sections.forEach(section => {
+            section.classList.remove("active-section");
+        });
+
+        // Mostrar sección seleccionada
+        const target = item.getAttribute("data-section");
+        document.getElementById(target).classList.add("active-section");
+
+        // Cargar datos según sección
+        switch (target) {
+            case "dashboard":
+                loadDashboard();
+                break;
+            case "topics":
+                loadTopics();
+                break;
+            case "questions":
+                loadQuestions();
+                break;
+            case "users":
+                loadUsers();
+                break;
+            case "results":
+                loadResults();
+                break;
+        }
+    });
+});
+
 // ================== INICIALIZACIÓN ==================
 document.addEventListener("DOMContentLoaded", () => {
     loadDashboard();
-    loadTopics();
-    loadQuestions();
-    loadUsers();
-    loadResults();
+    //loadTopics();
+    //loadQuestions();
+    //loadUsers();
+    //loadResults();
 });

@@ -24,14 +24,3 @@ app.use('/api/results', results_route);
 app.listen(port, () => {
   console.log(`Servidor iniciado en http://localhost:${port}`);
 });
-
-
-
-/*
-GET /api/topics
-GET /api/questions
-POST /api/topics
-POST /api/questions
-GET /api/users
-GET /api/results
-*/

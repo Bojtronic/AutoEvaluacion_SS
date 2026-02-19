@@ -1,43 +1,37 @@
 const pool = require("../database/connection");
-const queries = require('../queries/login_query');
+const queries = require("../queries/users_query");
 
+/* =========================================
+   LOGIN
+========================================= */
 const login = async (req, res) => {
     try {
-        const { user, password } = req.body;
+        const { username, password } = req.body;
 
-        if (!user || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Usuario y contraseña requeridos"
-            });
-        }
+        const result = await pool.query(
+            queries.login,
+            [username, password]
+        );
 
-        const result = await pool.query(queries.auth, [user, password]);
-
-        const role = result.rows[0].authenticate_user;
-
-        if (!role) {
+        if (result.rows.length === 0) {
             return res.status(401).json({
-                success: false,
-                message: "Credenciales incorrectas"
+                message: "Credenciales inválidas"
             });
         }
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
-            role: role
+            role: result.rows[0].role
         });
 
     } catch (error) {
-        console.error("Error en login:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Error interno del servidor"
+        console.error(error);
+        res.status(500).json({
+            message: "Error en el proceso de login"
         });
     }
 };
 
-
 module.exports = {
     login
-}
+};
