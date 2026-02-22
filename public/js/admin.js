@@ -390,6 +390,49 @@ async function deleteQuestion(id) {
 }
 
 // ================== EXAMENES ==================
+async function loadExams() {
+
+    try {
+
+        const exams = await apiFetch(`${API}/exams`);
+
+        const table = document.getElementById("examsTable");
+        table.innerHTML = "";
+
+        if (!exams || exams.length === 0) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="2">No hay exámenes registrados</td>
+                </tr>
+            `;
+            return;
+        }
+
+        exams.forEach(exam => {
+
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+                <td>${exam.name}</td>
+                <td>
+                    <button onclick="editExam(${exam.id}, '${exam.name}')">
+                        Editar
+                    </button>
+
+                    <button onclick="deleteExam(${exam.id})" class="btn-danger">
+                        Eliminar
+                    </button>
+                </td>
+            `;
+
+            table.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error("Error cargando exámenes:", error);
+    }
+}
+
 document.getElementById("addExamBtn")
     ?.addEventListener("click", () => {
 
