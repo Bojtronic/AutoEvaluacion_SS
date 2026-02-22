@@ -4,6 +4,12 @@ const controller = require("../controllers/questions_controller");
 const router = Router();
 
 /* =========================================
+   GET QUESTION BY TOPIC
+   GET /api/questions/by_topic?topic_id=1
+========================================= */
+router.get("/by_topic", controller.getByTopic);
+
+/* =========================================
    GET ALL QUESTIONS
    GET /api/questions
 ========================================= */

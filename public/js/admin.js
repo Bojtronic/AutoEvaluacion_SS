@@ -78,11 +78,17 @@ async function loadTopics() {
                     <td>${topic.name}</td>
                     <td>${topic.description || ""}</td>
                     <td>
-                        <button onclick="editTopic(${topic.id})">Editar</button>
+                        <button onclick="editTopic(${topic.id}, '${topic.name.replace(/'/g, "\\'")}', '${(topic.description || "").replace(/'/g, "\\'")}')">
+                            Editar
+                        </button>
+                        <button onclick="deleteTopic(${topic.id})" class="btn-danger">
+                            Eliminar
+                        </button>
                     </td>
                 </tr>
             `;
         });
+
     } catch (error) {
         console.error("Error cargando temas:", error);
     }
@@ -126,10 +132,76 @@ document.getElementById("addTopicBtn")
         };
     });
 
+// Editar Tema
+function editTopic(id, currentName, currentDescription) {
+
+    openModal("Editar Tema", `
+        <label>Nombre</label>
+        <input type="text" id="topicName" value="${currentName}">
+
+        <label>Descripción</label>
+        <textarea id="topicDescription">${currentDescription || ""}</textarea>
+    `);
+
+    modalSaveBtn.onclick = async () => {
+        const name = document.getElementById("topicName").value.trim();
+        const description = document.getElementById("topicDescription").value.trim();
+
+        if (!name || !description) {
+            alert("Por favor complete ambos campos");
+            return;
+        }
+
+        try {
+            await apiFetch(`${API}/topics/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, description })
+            });
+
+            closeModal();
+            loadTopics();
+            loadDashboard();
+
+        } catch (error) {
+            alert("Error actualizando tema");
+            console.error(error);
+        }
+    };
+}
+
+// Eliminar Tema
+async function deleteTopic(id) {
+
+    if (!confirm("¿Seguro que desea eliminar este tema? Se eliminarán también sus preguntas asociadas.")) {
+        return;
+    }
+
+    try {
+        await apiFetch(`${API}/topics/${id}`, {
+            method: "DELETE"
+        });
+
+        loadTopics();
+        loadDashboard();
+
+    } catch (error) {
+        alert("No se pudo eliminar el tema");
+        console.error(error);
+    }
+}
+
 // ================== PREGUNTAS ==================
 async function loadQuestions() {
     try {
-        const questions = await apiFetch(`${API}/questions`);
+        const topicFilter = document.getElementById("topicFilter").value;
+        let url = `${API}/questions`;
+
+        if (topicFilter) {
+            url = `${API}/questions/by_topic?topic_id=${topicFilter}`;
+        }
+
+        const questions = await apiFetch(url);
         const table = document.getElementById("questionsTable");
         table.innerHTML = "";
 
@@ -139,13 +211,35 @@ async function loadQuestions() {
                     <td>${q.question_text}</td>
                     <td>${q.topic_name}</td>
                     <td>
-                        <button onclick="editQuestion(${q.id})">Editar</button>
+                        <button onclick="editQuestion(${q.id}, '${q.question_text.replace(/'/g, "\\'")}', ${q.topic_id})">
+                            Editar
+                        </button>
+                        <button onclick="deleteQuestion(${q.id})" class="btn-danger">
+                            Eliminar
+                        </button>
                     </td>
                 </tr>
             `;
         });
+
     } catch (error) {
         console.error("Error cargando preguntas:", error);
+    }
+}
+
+async function loadTopicFilter() {
+    try {
+        const topics = await apiFetch(`${API}/topics`);
+        const select = document.getElementById("topicFilter");
+
+        select.innerHTML = `<option value="">-- Todos los temas --</option>`;
+
+        topics.forEach(t => {
+            select.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+        });
+
+    } catch (error) {
+        console.error("Error cargando filtro de temas:", error);
     }
 }
 
@@ -222,6 +316,79 @@ document.getElementById("addQuestionBtn")
         }
     });
 
+document.getElementById("topicFilter")
+    ?.addEventListener("change", loadQuestions);
+
+async function editQuestion(id, currentText, currentTopicId) {
+
+    try {
+        const topics = await apiFetch(`${API}/topics`);
+
+        const topicOptions = topics
+            .map(t => `
+                <option value="${t.id}" ${t.id == currentTopicId ? "selected" : ""}>
+                    ${t.name}
+                </option>
+            `)
+            .join("");
+
+        openModal("Editar Pregunta", `
+            <label>Tema</label>
+            <select id="questionTopic">${topicOptions}</select>
+
+            <label>Enunciado</label>
+            <textarea id="questionText">${currentText}</textarea>
+        `);
+
+        modalSaveBtn.onclick = async () => {
+
+            const topic_id = document.getElementById("questionTopic").value;
+            const question_text = document.getElementById("questionText").value.trim();
+
+            if (!question_text) {
+                alert("Debe ingresar la pregunta");
+                return;
+            }
+
+            await apiFetch(`${API}/questions/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    topic_id,
+                    question_text
+                })
+            });
+
+            closeModal();
+            loadQuestions();
+            loadDashboard();
+        };
+
+    } catch (error) {
+        console.error("Error editando pregunta:", error);
+    }
+}
+
+async function deleteQuestion(id) {
+
+    if (!confirm("¿Seguro que desea eliminar esta pregunta?")) {
+        return;
+    }
+
+    try {
+        await apiFetch(`${API}/questions/${id}`, {
+            method: "DELETE"
+        });
+
+        loadQuestions();
+        loadDashboard();
+
+    } catch (error) {
+        alert("No se pudo eliminar la pregunta");
+        console.error(error);
+    }
+}
+
 // ================== USUARIOS ==================
 async function loadUsers() {
     try {
@@ -271,13 +438,7 @@ async function loadResults() {
 }
 
 // ================== FUNCIONES PLACEHOLDER ==================
-function editTopic(id) {
-    console.log("Editar tema:", id);
-}
 
-function editQuestion(id) {
-    console.log("Editar pregunta:", id);
-}
 
 function editUser(id) {
     console.log("Editar usuario:", id);
@@ -327,6 +488,7 @@ menuItems.forEach(item => {
                 loadTopics();
                 break;
             case "questions":
+                loadTopicFilter();
                 loadQuestions();
                 break;
             case "users":

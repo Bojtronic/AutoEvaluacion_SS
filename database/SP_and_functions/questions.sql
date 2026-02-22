@@ -105,3 +105,33 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Obtener preguntas por tema
+CREATE OR REPLACE FUNCTION fn_questions_get_by_topic(p_topic_id INTEGER)
+RETURNS TABLE (
+    id INTEGER,
+    topic_id INTEGER,
+    topic_name VARCHAR,
+    question_text TEXT
+)
+AS $$
+BEGIN
+    -- Validar que el tema exista
+    IF NOT EXISTS (
+        SELECT 1 FROM topics t WHERE t.id = p_topic_id
+    ) THEN
+        RAISE EXCEPTION 'El tema no existe';
+    END IF;
+
+    RETURN QUERY
+    SELECT 
+        q.id,
+        q.topic_id,
+        t.name,
+        q.question_text
+    FROM questions q
+    INNER JOIN topics t ON t.id = q.topic_id
+    WHERE q.topic_id = p_topic_id
+    ORDER BY q.id;
+
+END;
+$$ LANGUAGE plpgsql;

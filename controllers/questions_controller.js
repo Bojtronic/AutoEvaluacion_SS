@@ -39,6 +39,33 @@ const getById = async (req, res) => {
 };
 
 /* =========================================
+   GET BY TOPIC
+========================================= */
+const getByTopic = async (req, res) => {
+    try {
+        const { topic_id } = req.query;
+
+        if (topic_id) {
+            const result = await pool.query(
+                queries.getByTopic,
+                [topic_id]
+            );
+            return res.json(result.rows);
+        }
+
+        const result = await pool.query(
+            queries.get
+        );
+
+        res.json(result.rows);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+/* =========================================
    CREATE
 ========================================= */
 const add = async (req, res) => {
@@ -120,6 +147,7 @@ const remove = async (req, res) => {
 module.exports = {
     get,
     getById,
+    getByTopic,
     add,
     update,
     remove

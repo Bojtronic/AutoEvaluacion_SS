@@ -222,3 +222,15 @@ button {
 .incorrect {
     background: #7f1d1d;
 }
+
+.btn-danger {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background-color: #c9302c;
+}
