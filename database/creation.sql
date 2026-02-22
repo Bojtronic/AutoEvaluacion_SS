@@ -42,7 +42,6 @@ CREATE TABLE exam_topics (
     id SERIAL PRIMARY KEY,
     exam_id INTEGER REFERENCES exams(id) ON DELETE CASCADE,
     topic_id INTEGER REFERENCES topics(id),
-    question_limit INTEGER,
     UNIQUE (exam_id, topic_id)
 );
 

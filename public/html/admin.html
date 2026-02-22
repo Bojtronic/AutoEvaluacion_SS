@@ -1,178 +1,203 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Panel Administrador | Security Software</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/admin.css">
 </head>
+
 <body>
 
-<div class="admin-layout">
+    <div class="admin-layout">
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <h2>Security Software</h2>
-        <nav>
-            <ul id="menuList">
-                <li data-section="dashboard" class="active">Dashboard</li>
-                <li data-section="topics">Temas</li>
-                <li data-section="questions">Preguntas</li>
-                <li data-section="exams">Exámenes</li>
-                <li data-section="users">Usuarios</li>
-                <li data-section="results">Resultados</li>
-            </ul>
-        </nav>
-        <button id="logoutBtn" class="logout-btn">Cerrar Sesión</button>
-    </aside>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>Security Software</h2>
+            <nav>
+                <ul id="menuList">
+                    <li data-section="dashboard" class="active">Dashboard</li>
+                    <li data-section="topics">Temas</li>
+                    <li data-section="questions">Preguntas</li>
+                    <li data-section="exams">Exámenes</li>
+                    <li data-section="users">Usuarios</li>
+                    <li data-section="results">Resultados</li>
+                </ul>
+            </nav>
+            <button id="logoutBtn" class="logout-btn">Cerrar Sesión</button>
+        </aside>
 
-    <!-- Main Content -->
-    <main class="main-content">
+        <!-- Main Content -->
+        <main class="main-content">
 
-        <!-- Dashboard -->
-        <section id="dashboard" class="section active-section">
-            <h1>Panel de Administración</h1>
-            <div class="cards">
-                <div class="card">
-                    <h3>Temas</h3>
-                    <p id="totalTopics">0</p>
+            <!-- Dashboard -->
+            <section id="dashboard" class="section active-section">
+                <h1>Panel de Administración</h1>
+                <div class="cards">
+                    <div class="card">
+                        <h3>Temas</h3>
+                        <p id="totalTopics">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Preguntas</h3>
+                        <p id="totalQuestions">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Usuarios</h3>
+                        <p id="totalUsers">0</p>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>Preguntas</h3>
-                    <p id="totalQuestions">0</p>
+            </section>
+
+            <!-- Temas -->
+            <section id="topics" class="section">
+                <h1>Gestión de Temas</h1>
+                <div class="action-bar">
+                    <button id="addTopicBtn">+ Nuevo Tema</button>
                 </div>
-                <div class="card">
-                    <h3>Usuarios</h3>
-                    <p id="totalUsers">0</p>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topicsTable"></tbody>
+                    </table>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Temas -->
-        <section id="topics" class="section">
-            <h1>Gestión de Temas</h1>
-            <div class="action-bar">
-                <button id="addTopicBtn">+ Nuevo Tema</button>
-            </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Descripción</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="topicsTable"></tbody>
-                </table>
-            </div>
-        </section>
+            <!-- Preguntas -->
+            <section id="questions" class="section">
+                <h1>Gestión de Preguntas</h1>
+                <div class="action-bar">
+                    <select id="topicFilter"></select>
+                    <button id="addQuestionBtn">+ Nueva Pregunta</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pregunta</th>
+                                <th>Tema</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="questionsTable"></tbody>
+                    </table>
+                </div>
+            </section>
 
-        <!-- Preguntas -->
-        <section id="questions" class="section">
-            <h1>Gestión de Preguntas</h1>
-            <div class="action-bar">
-                <select id="topicFilter"></select>
-                <button id="addQuestionBtn">+ Nueva Pregunta</button>
-            </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Pregunta</th>
-                            <th>Tema</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="questionsTable"></tbody>
-                </table>
-            </div>
-        </section>
+            <!-- Exámenes -->
+            <section id="exams" class="section">
+                <h1>Constructor de Exámenes</h1>
 
-        <!-- Exámenes -->
-        <section id="exams" class="section">
-            <h1>Constructor de Exámenes</h1>
-            <div class="exam-builder">
+                <div class="action-bar">
+                    <button id="addExamBtn">+ Nuevo Examen</button>
+                </div>
 
-                <label>Nombre del Examen</label>
-                <input type="text" id="examName" placeholder="Ingrese nombre del examen">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="examsTable"></tbody>
+                    </table>
+                </div>
 
-                <h3>Seleccionar Temas</h3>
-                <div id="topicsChecklist"></div>
+                <!-- Builder oculto -->
+                <div id="examBuilder" style="display:none;">
+                    <h2 id="builderTitle">Nuevo Examen</h2>
 
-                <h3>Preguntas por Tema</h3>
-                <div id="questionLimits"></div>
+                    <label>Nombre del Examen</label>
+                    <input type="text" id="examName">
 
-                <h3>Seleccionar Preguntas Específicas</h3>
-                <div id="specificQuestionsContainer"></div>
+                    <h3>Seleccionar Temas</h3>
+                    <div id="topicsChecklist"></div>
 
-                <button id="saveExamBtn" class="btn-primary">
-                    Guardar Examen
-                </button>
+                    <h3>Preguntas por Tema</h3>
+                    <div id="questionLimits"></div>
 
-            </div>
-        </section>
+                    <h3>Seleccionar Preguntas Específicas</h3>
+                    <div id="specificQuestionsContainer"></div>
 
-        <!-- Usuarios -->
-        <section id="users" class="section">
-            <h1>Gestión de Usuarios</h1>
-            <div class="action-bar">
-                <button id="addUserBtn">+ Nuevo Usuario</button>
-            </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Usuario</th>
-                            <th>Intentos</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTable"></tbody>
-                </table>
-            </div>
-        </section>
+                    <button id="saveExamBtn" class="btn-primary">
+                        Guardar Examen
+                    </button>
 
-        <!-- Resultados -->
-        <section id="results" class="section">
-            <h1>Resultados de Evaluaciones</h1>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Estudiante</th>
-                            <th>Examen</th>
-                            <th>Nota</th>
-                            <th>Fecha</th>
-                            <th>Detalle</th>
-                            <th>PDF</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultsTable"></tbody>
-                </table>
-            </div>
-        </section>
+                    <button id="cancelExamBtn">
+                        Cancelar
+                    </button>
+                </div>
+            </section>
 
-    </main>
-</div>
+            <!-- Usuarios -->
+            <section id="users" class="section">
+                <h1>Gestión de Usuarios</h1>
+                <div class="action-bar">
+                    <button id="addUserBtn">+ Nuevo Usuario</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Intentos</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable"></tbody>
+                    </table>
+                </div>
+            </section>
 
-<!-- Overlay -->
-<div id="modalOverlay" class="modal-overlay hidden"></div>
+            <!-- Resultados -->
+            <section id="results" class="section">
+                <h1>Resultados de Evaluaciones</h1>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Examen</th>
+                                <th>Nota</th>
+                                <th>Fecha</th>
+                                <th>Detalle</th>
+                                <th>PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTable"></tbody>
+                    </table>
+                </div>
+            </section>
 
-<!-- Modal -->
-<div id="modal" class="modal hidden">
-    <div class="modal-header">
-        <h2 id="modalTitle"></h2>
-        <button id="closeModalBtn">✕</button>
+        </main>
     </div>
-    <div id="modalBody" class="modal-body"></div>
-    <div class="modal-footer">
-        <button id="modalCancelBtn" class="btn-secondary">Cancelar</button>
-        <button id="modalSaveBtn" class="btn-primary">Guardar</button>
-    </div>
-</div>
 
-<script src="/js/admin.js"></script>
+    <!-- Overlay -->
+    <div id="modalOverlay" class="modal-overlay hidden"></div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-header">
+            <h2 id="modalTitle"></h2>
+            <button id="closeModalBtn">✕</button>
+        </div>
+        <div id="modalBody" class="modal-body"></div>
+        <div class="modal-footer">
+            <button id="modalCancelBtn" class="btn-secondary">Cancelar</button>
+            <button id="modalSaveBtn" class="btn-primary">Guardar</button>
+        </div>
+    </div>
+
+    <script src="/js/admin.js"></script>
 </body>
+
 </html>

@@ -389,6 +389,88 @@ async function deleteQuestion(id) {
     }
 }
 
+// ================== EXAMENES ==================
+document.getElementById("addExamBtn")
+    ?.addEventListener("click", () => {
+
+        document.getElementById("builderTitle").innerText = "Nuevo Examen";
+        document.getElementById("examName").value = "";
+
+        document.getElementById("examBuilder").style.display = "block";
+
+        currentExamId = null;
+    });
+
+document.getElementById("cancelExamBtn")
+    ?.addEventListener("click", () => {
+        document.getElementById("examBuilder").style.display = "none";
+    });
+
+let currentExamId = null;
+
+document.getElementById("saveExamBtn")
+    ?.addEventListener("click", async () => {
+
+        const name = document.getElementById("examName").value.trim();
+
+        if (!name) {
+            alert("Debe ingresar nombre del examen");
+            return;
+        }
+
+        try {
+
+            if (currentExamId) {
+                // UPDATE
+                await apiFetch(`${API}/exams/${currentExamId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name })
+                });
+            } else {
+                // CREATE
+                await apiFetch(`${API}/exams`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name })
+                });
+            }
+
+            document.getElementById("examBuilder").style.display = "none";
+            loadExams();
+
+        } catch (error) {
+            console.error("Error guardando examen:", error);
+        }
+    });
+
+function editExam(id, name) {
+
+    currentExamId = id;
+
+    document.getElementById("builderTitle").innerText = "Editar Examen";
+    document.getElementById("examName").value = name;
+    document.getElementById("examBuilder").style.display = "block";
+}
+
+async function deleteExam(id) {
+
+    if (!confirm("¿Seguro que desea eliminar este examen?")) return;
+
+    try {
+        await apiFetch(`${API}/exams/${id}`, {
+            method: "DELETE"
+        });
+
+        loadExams();
+
+    } catch (error) {
+        console.error("Error eliminando examen:", error);
+    }
+}
+
+
+
 // ================== USUARIOS ==================
 async function loadUsers() {
     try {
@@ -456,7 +538,7 @@ function downloadPDF(id) {
 document.getElementById("logoutBtn")
     ?.addEventListener("click", () => {
         localStorage.clear();
-        window.location.href = "login.html";
+        window.location.href = "../index.html";
     });
 
 // ================== NAVEGACIÓN ==================
@@ -491,6 +573,9 @@ menuItems.forEach(item => {
                 loadTopicFilter();
                 loadQuestions();
                 break;
+            case "exams":
+                loadExams();
+                break;
             case "users":
                 loadUsers();
                 break;
@@ -504,8 +589,4 @@ menuItems.forEach(item => {
 // ================== INICIALIZACIÓN ==================
 document.addEventListener("DOMContentLoaded", () => {
     loadDashboard();
-    //loadTopics();
-    //loadQuestions();
-    //loadUsers();
-    //loadResults();
 });
