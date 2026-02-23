@@ -4,6 +4,7 @@ const saveAnswer = "SELECT fn_attempt_answer_save($1, $2, $3)";
 const finishAttempt = "SELECT fn_attempt_finish($1) AS score";
 const getResultsByUser = "SELECT * FROM fn_results_by_user($1)";
 const getAttemptDetail = "SELECT * FROM fn_attempt_detail($1)";
+const getLastAttemptByUser = "SELECT * FROM fn_last_attempt_detail_by_user($1)";
 
 module.exports = {
     getAllResults,
@@ -11,5 +12,6 @@ module.exports = {
     saveAnswer,
     finishAttempt,
     getResultsByUser,
-    getAttemptDetail
+    getAttemptDetail,
+    getLastAttemptByUser
 };
