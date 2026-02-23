@@ -855,6 +855,7 @@ document.getElementById("modalCancelBtn")
 
 document.getElementById("closeModalBtn")
 ?.addEventListener("click", closeModal);
+
 // ================== RESULTADOS ==================
 async function loadResults() {
     try {

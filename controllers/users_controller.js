@@ -101,18 +101,28 @@ const update = async (req, res) => {
 const changePassword = async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { new_password } = req.body;
+        const { newPassword } = req.body;
+
+        if (!newPassword || newPassword.trim() === "") {
+            return res.status(400).json({
+                message: "La contraseña no puede estar vacía"
+            });
+        }
 
         await pool.query(
             queries.changePassword,
-            [id, new_password]
+            [id, newPassword]
         );
 
-        res.status(200).json({ message: "Contraseña actualizada exitosamente" });
+        res.status(200).json({
+            message: "Contraseña actualizada exitosamente"
+        });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: error.message || "Error al cambiar contraseña" });
+        res.status(500).json({
+            message: error.message || "Error al cambiar contraseña"
+        });
     }
 };
 

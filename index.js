@@ -6,6 +6,7 @@ const login_route = require('./routes/login_route');
 const topics_route = require('./routes/topics_route');
 const questions_route = require('./routes/questions_route');
 const exams_route = require('./routes/exams_route');
+const roles_route = require('./routes/roles_route');
 const users_route = require('./routes/users_route');
 const results_route = require('./routes/results_route');
 
@@ -19,6 +20,7 @@ app.use('/api/login', login_route);
 app.use('/api/topics', topics_route);
 app.use('/api/questions', questions_route);
 app.use('/api/exams', exams_route);
+app.use('/api/roles', roles_route);
 app.use('/api/users', users_route);
 app.use('/api/results', results_route);
 
