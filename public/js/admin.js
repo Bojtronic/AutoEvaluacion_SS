@@ -870,8 +870,7 @@ async function loadResults() {
                     <td>${r.exam_name}</td>
                     <td>${r.score}</td>
                     <td>${new Date(r.finished_at).toLocaleString()}</td>
-                    <td><button onclick="viewResult(${r.id})">Ver</button></td>
-                    <td><button onclick="downloadPDF(${r.id})">PDF</button></td>
+                    <td><button onclick="downloadPDF(${r.user_id})">PDF</button></td>
                 </tr>
             `;
         });
@@ -880,14 +879,16 @@ async function loadResults() {
     }
 }
 
+function downloadPDF(user_id) {
+    window.open(`${API}/results/user/${user_id}/pdf`, "_blank");
+}
+
 // ================== FUNCIONES PLACEHOLDER ==================
 function viewResult(id) {
     console.log("Ver resultado:", id);
 }
 
-function downloadPDF(id) {
-    window.open(`${API}/results/${id}/pdf`, "_blank");
-}
+
 
 // ================== LOGOUT ==================
 document.getElementById("logoutBtn")

@@ -1,6 +1,7 @@
 -- Obtener todos los resultados (vista administrador)
 CREATE OR REPLACE FUNCTION fn_results_all()
 RETURNS TABLE (
+    user_id INTEGER,
     attempt_id INTEGER,
     username VARCHAR,
     exam_name VARCHAR,
@@ -12,21 +13,28 @@ RETURNS TABLE (
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
-        a.id,
+    SELECT
+        u.id AS user_id,
+        a.id AS attempt_id,
         u.username,
         e.name,
         a.attempt_number,
         a.score,
         a.started_at,
         a.finished_at
-    FROM attempts a
-    INNER JOIN users u ON u.id = a.user_id
+    FROM users u
+    INNER JOIN LATERAL (
+        SELECT *
+        FROM attempts a2
+        WHERE a2.user_id = u.id
+          AND a2.finished_at IS NOT NULL
+        ORDER BY a2.finished_at DESC
+        LIMIT 1
+    ) a ON TRUE
     INNER JOIN exams e ON e.id = a.exam_id
-    ORDER BY a.finished_at DESC NULLS LAST;
+    ORDER BY a.finished_at DESC;
 END;
 $$ LANGUAGE plpgsql;
-
 
 -- Crear intento
 CREATE OR REPLACE FUNCTION fn_attempt_create(
@@ -191,23 +199,119 @@ CREATE OR REPLACE FUNCTION fn_attempt_detail(
     p_attempt_id INTEGER
 )
 RETURNS TABLE (
+    attempt_id INTEGER,
+    username VARCHAR,
+    exam_name VARCHAR,
+    attempt_number INTEGER,
+    score NUMERIC,
+    started_at TIMESTAMP,
+    finished_at TIMESTAMP,
     question_id INTEGER,
     question_text TEXT,
     selected_option TEXT,
-    is_correct BOOLEAN
+    is_correct BOOLEAN,
+    max_attempts INTEGER,
+    attempts_used INTEGER,
+    attempts_remaining INTEGER
 )
 AS $$
 BEGIN
     RETURN QUERY
     SELECT
+        a.id,
+        u.username,
+        e.name,
+        a.attempt_number,
+        a.score,
+        a.started_at,
+        a.finished_at,
         q.id,
         q.question_text,
         o.option_text,
-        aa.is_correct
-    FROM attempt_answers aa
+        aa.is_correct,
+        COALESCE(uel.max_attempts, 1),
+        COUNT(a2.id) OVER (PARTITION BY a.user_id, a.exam_id)::INTEGER,
+        (
+            COALESCE(uel.max_attempts, 1)
+            - COUNT(a2.id) OVER (PARTITION BY a.user_id, a.exam_id)
+        )::INTEGER
+    FROM attempts a
+    INNER JOIN users u ON u.id = a.user_id
+    INNER JOIN exams e ON e.id = a.exam_id
+    INNER JOIN attempt_answers aa ON aa.attempt_id = a.id
     INNER JOIN questions q ON q.id = aa.question_id
     INNER JOIN options o ON o.id = aa.selected_option_id
-    WHERE aa.attempt_id = p_attempt_id;
+    LEFT JOIN user_exam_limits uel 
+        ON uel.user_id = a.user_id 
+       AND uel.exam_id = a.exam_id
+    LEFT JOIN attempts a2 
+        ON a2.user_id = a.user_id 
+       AND a2.exam_id = a.exam_id
+    WHERE a.id = p_attempt_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Obtener detalle completo de ultimo intento por usuario
+CREATE OR REPLACE FUNCTION fn_last_attempt_detail_by_user(
+    p_user_id INTEGER
+)
+RETURNS TABLE (
+    attempt_id INTEGER,
+    username VARCHAR,
+    exam_name VARCHAR,
+    attempt_number INTEGER,
+    score NUMERIC,
+    started_at TIMESTAMP,
+    finished_at TIMESTAMP,
+    question_id INTEGER,
+    question_text TEXT,
+    selected_option TEXT,
+    is_correct BOOLEAN,
+    max_attempts INTEGER,
+    attempts_used INTEGER,
+    attempts_remaining INTEGER
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    WITH last_attempt AS (
+        SELECT a.*
+        FROM attempts a
+        WHERE a.user_id = p_user_id
+          AND a.finished_at IS NOT NULL
+        ORDER BY a.finished_at DESC
+        LIMIT 1
+    )
+    SELECT
+        la.id,
+        u.username,
+        e.name,
+        la.attempt_number,
+        la.score,
+        la.started_at,
+        la.finished_at,
+        q.id,
+        q.question_text,
+        o.option_text,
+        aa.is_correct,
+        COALESCE(uel.max_attempts, 1),
+        COUNT(a2.id) OVER (PARTITION BY la.user_id, la.exam_id)::INTEGER,
+        (
+            COALESCE(uel.max_attempts, 1)
+            - COUNT(a2.id) OVER (PARTITION BY la.user_id, la.exam_id)
+        )::INTEGER
+    FROM last_attempt la
+    INNER JOIN users u ON u.id = la.user_id
+    INNER JOIN exams e ON e.id = la.exam_id
+    INNER JOIN attempt_answers aa ON aa.attempt_id = la.id
+    INNER JOIN questions q ON q.id = aa.question_id
+    INNER JOIN options o ON o.id = aa.selected_option_id
+    LEFT JOIN user_exam_limits uel 
+        ON uel.user_id = la.user_id 
+       AND uel.exam_id = la.exam_id
+    LEFT JOIN attempts a2 
+        ON a2.user_id = la.user_id 
+       AND a2.exam_id = la.exam_id;
 END;
 $$ LANGUAGE plpgsql;
 

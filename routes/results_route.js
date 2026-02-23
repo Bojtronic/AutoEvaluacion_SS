@@ -39,4 +39,16 @@ router.get("/user/:user_id", controller.getResultsByUser);
 ========================================= */
 router.get("/attempt/:attempt_id", controller.getAttemptDetail);
 
+/* =========================================
+   DOWNLOAD ATTEMPT PDF
+   GET /api/results/attempt/:attempt_id/pdf
+========================================= */
+router.get("/attempt/:attempt_id/pdf", controller.downloadAttemptPDF);
+
+/* =========================================
+   GET RESULTS OF LAST ATTEMPT BY USER
+   GET /api/results/user/:user_id/pdf
+========================================= */
+router.get("/user/:user_id/pdf", controller.downloadUserLastAttemptPDF);
+
 module.exports = router;
