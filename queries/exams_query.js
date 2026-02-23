@@ -4,7 +4,7 @@
 
 const get = "SELECT * FROM fn_exams_get_all()";
 const getById = "SELECT * FROM fn_exams_get_by_id($1)";
-const add = "SELECT fn_exams_create($1::VARCHAR)";
+const add = "SELECT fn_exams_create($1::VARCHAR) AS id";
 const update = "SELECT fn_exams_update($1::INTEGER, $2::VARCHAR)";
 const remove = "SELECT fn_exams_delete($1)";
 

@@ -38,18 +38,22 @@ $$ LANGUAGE plpgsql;
 
 -- Crear examen
 CREATE OR REPLACE FUNCTION fn_exams_create(p_name VARCHAR)
-RETURNS VOID
+RETURNS INTEGER
 AS $$
+DECLARE
+    v_exam_id INTEGER;
 BEGIN
     IF TRIM(p_name) = '' THEN
         RAISE EXCEPTION 'El nombre no puede estar vacío';
     END IF;
 
     INSERT INTO exams (name)
-    VALUES (p_name);
+    VALUES (p_name)
+    RETURNING id INTO v_exam_id;
+
+    RETURN v_exam_id;
 END;
 $$ LANGUAGE plpgsql;
-
 
 --- Actualizar examen
 CREATE OR REPLACE FUNCTION fn_exams_update(

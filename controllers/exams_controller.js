@@ -45,12 +45,17 @@ const add = async (req, res) => {
     try {
         const { name } = req.body;
 
-        await pool.query(
+        const result = await pool.query(
             queries.add,
             [name]
         );
 
-        res.status(201).json({ message: "Examen creado exitosamente" });
+        const newId = result.rows[0].id;
+
+        res.status(201).json({
+            id: newId,
+            name
+        });
 
     } catch (error) {
         console.error(error);

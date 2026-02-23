@@ -118,14 +118,31 @@
                     <label>Nombre del Examen</label>
                     <input type="text" id="examName">
 
-                    <h3>Seleccionar Temas</h3>
-                    <div id="topicsChecklist"></div>
+                    <h3>Temas</h3>
+                    <div class="dual-panel">
+                        <div class="panel">
+                            <h4>Disponibles</h4>
+                            <div id="availableTopics"></div>
+                        </div>
 
-                    <h3>Preguntas por Tema</h3>
-                    <div id="questionLimits"></div>
+                        <div class="panel">
+                            <h4>Asignados</h4>
+                            <div id="assignedTopics"></div>
+                        </div>
+                    </div>
 
-                    <h3>Seleccionar Preguntas Específicas</h3>
-                    <div id="specificQuestionsContainer"></div>
+                    <h3>Preguntas</h3>
+                    <div class="dual-panel">
+                        <div class="panel">
+                            <h4>Disponibles</h4>
+                            <div id="availableQuestions"></div>
+                        </div>
+
+                        <div class="panel">
+                            <h4>Asignadas</h4>
+                            <div id="assignedQuestions"></div>
+                        </div>
+                    </div>
 
                     <button id="saveExamBtn" class="btn-primary">
                         Guardar Examen
@@ -196,6 +213,7 @@
             <button id="modalSaveBtn" class="btn-primary">Guardar</button>
         </div>
     </div>
+
 
     <script src="/js/admin.js"></script>
 </body>
