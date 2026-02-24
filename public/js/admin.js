@@ -390,6 +390,9 @@ async function deleteQuestion(id) {
 }
 
 // ================== EXAMENES ==================
+let selectedTopics = [];
+let selectedQuestions = [];
+
 async function loadExams() {
 
     try {
@@ -442,20 +445,33 @@ async function loadExams() {
 
 async function loadQuestionsPanels() {
 
-    const [allQuestions, assignedQuestions] = await Promise.all([
-        apiFetch(`${API}/questions`),
-        apiFetch(`${API}/exams/${currentExamId}/questions`)
-    ]);
-
     const availableContainer = document.getElementById("availableQuestions");
     const assignedContainer = document.getElementById("assignedQuestions");
 
     availableContainer.innerHTML = "";
     assignedContainer.innerHTML = "";
 
-    const assignedIds = assignedQuestions.map(q => q.id);
+    if (!selectedTopics.length) {
+        availableContainer.innerHTML = "<p>Seleccione un tema primero</p>";
+        return;
+    }
 
-    allQuestions.forEach(q => {
+    // 🔥 traer preguntas SOLO de temas seleccionados
+    const allQuestions = await apiFetch(`${API}/questions`);
+
+    const filteredQuestions = allQuestions.filter(q =>
+        selectedTopics.includes(q.topic_id)
+    );
+
+    const assignedFromDB = currentExamId
+        ? await apiFetch(`${API}/exams/${currentExamId}/questions`)
+        : [];
+
+    selectedQuestions = assignedFromDB;
+
+    const assignedIds = selectedQuestions.map(q => q.id);
+
+    filteredQuestions.forEach(q => {
 
         const div = document.createElement("div");
 
@@ -488,7 +504,7 @@ async function addQuestionToExam(questionId) {
         body: JSON.stringify({ question_id: questionId })
     });
 
-    loadQuestionsPanels();
+    await loadQuestionsPanels();
 }
 
 async function removeQuestionFromExam(questionId) {
@@ -505,8 +521,12 @@ async function loadTopicsPanels() {
 
     const [allTopics, assignedTopics] = await Promise.all([
         apiFetch(`${API}/topics`),
-        apiFetch(`${API}/exams/${currentExamId}/topics`)
+        currentExamId
+            ? apiFetch(`${API}/exams/${currentExamId}/topics`)
+            : Promise.resolve([])
     ]);
+
+    selectedTopics = assignedTopics.map(t => t.id);
 
     const availableContainer = document.getElementById("availableTopics");
     const assignedContainer = document.getElementById("assignedTopics");
@@ -514,13 +534,11 @@ async function loadTopicsPanels() {
     availableContainer.innerHTML = "";
     assignedContainer.innerHTML = "";
 
-    const assignedIds = assignedTopics.map(t => t.id);
-
     allTopics.forEach(topic => {
 
         const div = document.createElement("div");
 
-        if (assignedIds.includes(topic.id)) {
+        if (selectedTopics.includes(topic.id)) {
 
             div.innerHTML = `
                 <span>${topic.name}</span>
@@ -539,6 +557,9 @@ async function loadTopicsPanels() {
             availableContainer.appendChild(div);
         }
     });
+
+    // IMPORTANTE: refrescar preguntas cuando cambien temas
+    await loadQuestionsPanels();
 }
 
 async function addTopicToExam(topicId) {
@@ -549,7 +570,9 @@ async function addTopicToExam(topicId) {
         body: JSON.stringify({ topic_id: topicId })
     });
 
-    loadTopicsPanels();
+    selectedTopics.push(topicId);
+
+    await loadTopicsPanels();
 }
 
 async function removeTopicFromExam(topicId) {
@@ -558,7 +581,12 @@ async function removeTopicFromExam(topicId) {
         method: "DELETE"
     });
 
-    loadTopicsPanels();
+    // eliminar preguntas de ese tema del estado local
+    selectedQuestions = selectedQuestions.filter(q => q.topic_id !== topicId);
+
+    selectedTopics = selectedTopics.filter(t => t !== topicId);
+
+    await loadTopicsPanels();
 }
 
 document.getElementById("addExamBtn")
