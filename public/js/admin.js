@@ -796,6 +796,11 @@ async function loadUsers() {
                         <button onclick="editUser(${u.id})">Editar</button>
                         <button onclick="changePassword(${u.id})">Password</button>
                         <button onclick="deleteUser(${u.id})">Eliminar</button>
+
+                        ${u.role_name === "student" ? 
+                        `<button onclick="assignExam(${u.id})">Examen</button>` 
+                        : ""
+                        }
                     </td>
                 </tr>
             `;
@@ -886,6 +891,71 @@ async function changePassword(id) {
     });
 
     alert("Contraseña actualizada");
+}
+
+async function assignExam(userId) {
+
+    try {
+
+        const exams = await apiFetch(`${API}/exams`);
+
+        document.getElementById("modalTitle").innerText =
+            "Asignar / Editar Examen";
+
+        document.getElementById("modalBody").innerHTML = `
+            <div class="form-group">
+                <label>Seleccionar Examen</label>
+                <select id="assignExamSelect" style="color: black;">
+                    ${exams.map(e => `
+                        <option value="${e.id}" style="color: black;">
+                            ${e.name}
+                        </option>
+                    `).join("")}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Intentos Permitidos</label>
+                <input type="number" id="examAttempts" min="1" value="1" style="color: black;">
+            </div>
+        `;
+
+        document.getElementById("modalOverlay").classList.remove("hidden");
+        document.getElementById("modal").classList.remove("hidden");
+
+        // Sobrescribimos el botón Guardar SOLO para este modal
+        document.getElementById("modalSaveBtn").onclick = async () => {
+
+            const exam_id = parseInt(
+                document.getElementById("assignExamSelect").value
+            );
+
+            const max_attempts = parseInt(
+                document.getElementById("examAttempts").value
+            );
+
+            try {
+
+                await apiFetch(`${API}/users/${userId}/exam`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        exam_id,
+                        max_attempts
+                    })
+                });
+
+                alert("Examen asignado correctamente");
+                closeModal();
+
+            } catch (error) {
+                console.error("Error asignando examen:", error);
+            }
+        };
+
+    } catch (error) {
+        console.error("Error cargando exámenes:", error);
+    }
 }
 
 async function deleteUser(id) {

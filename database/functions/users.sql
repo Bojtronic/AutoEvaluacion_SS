@@ -118,6 +118,67 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Asignación de examen e intentos a un usuario
+CREATE OR REPLACE FUNCTION fn_users_assign_exam(
+    p_user_id INTEGER,
+    p_exam_id INTEGER,
+    p_max_attempts INTEGER
+)
+RETURNS VOID
+AS $$
+DECLARE
+    v_role_name VARCHAR;
+BEGIN
+
+    -- Validar usuario
+    IF NOT EXISTS (
+        SELECT 1 FROM users WHERE id = p_user_id
+    ) THEN
+        RAISE EXCEPTION 'El usuario no existe';
+    END IF;
+
+    -- Obtener rol
+    SELECT r.name
+    INTO v_role_name
+    FROM users u
+    INNER JOIN roles r ON r.id = u.role_id
+    WHERE u.id = p_user_id;
+
+    IF LOWER(TRIM(v_role_name)) <> 'student' THEN
+        RAISE EXCEPTION 'Solo los estudiantes pueden tener examen asignado';
+    END IF;
+
+    -- Validar examen
+    IF NOT EXISTS (
+        SELECT 1 FROM exams WHERE id = p_exam_id
+    ) THEN
+        RAISE EXCEPTION 'El examen no existe';
+    END IF;
+
+    IF p_max_attempts <= 0 THEN
+        RAISE EXCEPTION 'La cantidad de intentos debe ser mayor a 0';
+    END IF;
+
+    -- UPSERT: actualizar si existe, insertar si no
+    IF EXISTS (
+        SELECT 1 FROM user_exam_limits
+        WHERE user_id = p_user_id
+    ) THEN
+
+        UPDATE user_exam_limits
+        SET exam_id = p_exam_id,
+            max_attempts = p_max_attempts
+        WHERE user_id = p_user_id;
+
+    ELSE
+
+        INSERT INTO user_exam_limits (user_id, exam_id, max_attempts)
+        VALUES (p_user_id, p_exam_id, p_max_attempts);
+
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
 
 -- Eliminar usuario
 CREATE OR REPLACE FUNCTION fn_users_delete(p_id INTEGER)

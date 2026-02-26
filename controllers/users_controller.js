@@ -127,6 +127,38 @@ const changePassword = async (req, res) => {
 };
 
 /* =========================================
+   ASSIGN / UPDATE EXAM FOR USER
+========================================= */
+const assignExam = async (req, res) => {
+    try {
+
+        const userId = parseInt(req.params.id);
+        const { exam_id, max_attempts } = req.body;
+
+        if (!exam_id || !max_attempts) {
+            return res.status(400).json({
+                message: "Debe enviar exam_id y max_attempts"
+            });
+        }
+
+        await pool.query(
+            queries.assignExam,
+            [userId, exam_id, max_attempts]
+        );
+
+        res.status(200).json({
+            message: "Examen asignado correctamente"
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: error.message || "Error al asignar examen"
+        });
+    }
+};
+
+/* =========================================
    DELETE USER
 ========================================= */
 const remove = async (req, res) => {
@@ -161,5 +193,6 @@ module.exports = {
     add,
     update,
     changePassword,
+    assignExam,
     remove
 };
