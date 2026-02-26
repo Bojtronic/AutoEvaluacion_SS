@@ -119,38 +119,25 @@
                     <input type="text" id="examName">
 
                     <h3>Temas</h3>
-                    <div class="dual-panel">
-                        <div class="panel">
-                            <h4>Disponibles</h4>
-                            <div id="availableTopics"></div>
-                        </div>
-
-                        <div class="panel">
-                            <h4>Asignados</h4>
-                            <div id="assignedTopics"></div>
-                        </div>
-                    </div>
 
                     <h3>Preguntas</h3>
-                    <div class="dual-panel">
-                        <div class="panel">
-                            <h4>Disponibles</h4>
-                            <div id="availableQuestions"></div>
-                        </div>
 
-                        <div class="panel">
-                            <h4>Asignadas</h4>
-                            <div id="assignedQuestions"></div>
-                        </div>
+                    <label>Seleccionar Tema</label>
+                    <select id="topicSelect"></select>
+
+                    <h3>Preguntas agregadas al examen</h3>
+                    <div id="selectedSummary"></div>
+
+                    <div id="questionsSelector" style="margin-top:10px;"></div>
+
+                    <div style="margin-top:20px;">
+                        <button id="saveExamBtn" class="btn-primary">
+                            Guardar Examen
+                        </button>
+                        <button id="cancelExamBtn">
+                            Cancelar
+                        </button>
                     </div>
-
-                    <button id="saveExamBtn" class="btn-primary">
-                        Guardar Examen
-                    </button>
-
-                    <button id="cancelExamBtn">
-                        Cancelar
-                    </button>
                 </div>
             </section>
 

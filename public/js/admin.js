@@ -390,9 +390,6 @@ async function deleteQuestion(id) {
 }
 
 // ================== EXAMENES ==================
-let selectedTopics = [];
-let selectedQuestions = [];
-
 async function loadExams() {
 
     try {
@@ -443,150 +440,156 @@ async function loadExams() {
     }
 }
 
-async function loadQuestionsPanels() {
+async function loadTopicsSelect() {
 
-    const availableContainer = document.getElementById("availableQuestions");
-    const assignedContainer = document.getElementById("assignedQuestions");
+    const select = document.getElementById("topicSelect");
+    select.innerHTML = '<option value="">Seleccione un tema</option>';
 
-    availableContainer.innerHTML = "";
-    assignedContainer.innerHTML = "";
+    const topics = await apiFetch(`${API}/topics`);
 
-    if (!selectedTopics.length) {
-        availableContainer.innerHTML = "<p>Seleccione un tema primero</p>";
+    topics.forEach(topic => {
+        const option = document.createElement("option");
+        option.value = topic.id;
+        option.textContent = topic.name;
+        select.appendChild(option);
+    });
+}
+
+document.getElementById("topicSelect")
+?.addEventListener("change", async function () {
+
+    const topicId = Number(this.value);
+    const container = document.getElementById("questionsSelector");
+
+    if (!topicId) return;
+
+    container.innerHTML = "";
+
+    const questions = await apiFetch(
+        `${API}/questions/by_topic?topic_id=${topicId}`
+    );
+
+    questions.forEach(q => {
+
+        const isChecked = examState.questions.has(q.id);
+
+        const div = document.createElement("div");
+        div.style.marginBottom = "6px";
+
+        div.innerHTML = `
+            <label style="color:white;">
+                <input type="checkbox"
+                       value="${q.id}"
+                       ${isChecked ? "checked" : ""}>
+                ${q.question_text}
+            </label>
+        `;
+
+        const checkbox = div.querySelector("input");
+
+        checkbox.addEventListener("change", function () {
+
+            if (this.checked) {
+                examState.questions.set(q.id, topicId);
+            } else {
+                examState.questions.delete(q.id);
+            }
+
+            renderSelectedSummary();
+            syncCheckboxes();
+        });
+
+        container.appendChild(div);
+    });
+});
+
+function renderSelectedSummary() {
+
+    const container = document.getElementById("selectedSummary");
+    container.innerHTML = "";
+
+    if (examState.questions.size === 0) {
+        container.innerHTML = "<p>No hay preguntas agregadas</p>";
         return;
     }
 
-    // 🔥 traer preguntas SOLO de temas seleccionados
-    const allQuestions = await apiFetch(`${API}/questions`);
+    const topicsMap = {};
 
-    const filteredQuestions = allQuestions.filter(q =>
-        selectedTopics.includes(q.topic_id)
-    );
+    examState.questions.forEach((topicId, questionId) => {
 
-    const assignedFromDB = currentExamId
-        ? await apiFetch(`${API}/exams/${currentExamId}/questions`)
-        : [];
-
-    selectedQuestions = assignedFromDB;
-
-    const assignedIds = selectedQuestions.map(q => q.id);
-
-    filteredQuestions.forEach(q => {
-
-        const div = document.createElement("div");
-
-        if (assignedIds.includes(q.id)) {
-
-            div.innerHTML = `
-                <span>${q.question_text}</span>
-                <button onclick="removeQuestionFromExam(${q.id})">❌</button>
-            `;
-
-            assignedContainer.appendChild(div);
-
-        } else {
-
-            div.innerHTML = `
-                <span>${q.question_text}</span>
-                <button onclick="addQuestionToExam(${q.id})">➜</button>
-            `;
-
-            availableContainer.appendChild(div);
+        if (!topicsMap[topicId]) {
+            topicsMap[topicId] = [];
         }
-    });
-}
 
-async function addQuestionToExam(questionId) {
-
-    await apiFetch(`${API}/exams/${currentExamId}/questions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question_id: questionId })
+        topicsMap[topicId].push(questionId);
     });
 
-    await loadQuestionsPanels();
-}
+    Object.keys(topicsMap).forEach(topicId => {
 
-async function removeQuestionFromExam(questionId) {
+        const topicDiv = document.createElement("div");
+        topicDiv.style.border = "1px solid #ccc";
+        topicDiv.style.padding = "10px";
+        topicDiv.style.marginBottom = "10px";
 
-    await apiFetch(`${API}/exams/${currentExamId}/questions/${questionId}`, {
-        method: "DELETE"
-    });
+        topicDiv.innerHTML = `
+            <strong>Tema ${topicId}</strong>
+            <button data-topic="${topicId}" style="float:right;color:red;">
+                Eliminar Tema
+            </button>
+        `;
 
-    loadQuestionsPanels();
-}
+        topicsMap[topicId].forEach(questionId => {
 
+            const qDiv = document.createElement("div");
+            qDiv.style.marginLeft = "15px";
 
-async function loadTopicsPanels() {
-
-    const [allTopics, assignedTopics] = await Promise.all([
-        apiFetch(`${API}/topics`),
-        currentExamId
-            ? apiFetch(`${API}/exams/${currentExamId}/topics`)
-            : Promise.resolve([])
-    ]);
-
-    selectedTopics = assignedTopics.map(t => t.id);
-
-    const availableContainer = document.getElementById("availableTopics");
-    const assignedContainer = document.getElementById("assignedTopics");
-
-    availableContainer.innerHTML = "";
-    assignedContainer.innerHTML = "";
-
-    allTopics.forEach(topic => {
-
-        const div = document.createElement("div");
-
-        if (selectedTopics.includes(topic.id)) {
-
-            div.innerHTML = `
-                <span>${topic.name}</span>
-                <button onclick="removeTopicFromExam(${topic.id})">❌</button>
+            qDiv.innerHTML = `
+                Pregunta ID: ${questionId}
+                <button data-question="${questionId}" style="color:red;">
+                    ✕
+                </button>
             `;
 
-            assignedContainer.appendChild(div);
+            topicDiv.appendChild(qDiv);
+        });
 
-        } else {
-
-            div.innerHTML = `
-                <span>${topic.name}</span>
-                <button onclick="addTopicToExam(${topic.id})">➜</button>
-            `;
-
-            availableContainer.appendChild(div);
-        }
+        container.appendChild(topicDiv);
     });
 
-    // IMPORTANTE: refrescar preguntas cuando cambien temas
-    await loadQuestionsPanels();
-}
+    // Eliminar pregunta individual
+    container.querySelectorAll("[data-question]")
+        .forEach(btn => {
+            btn.addEventListener("click", function () {
+                const qId = Number(this.dataset.question);
+                examState.questions.delete(qId);
+                renderSelectedSummary();
+                syncCheckboxes();
+            });
+        });
 
-async function addTopicToExam(topicId) {
+    // Eliminar tema completo
+    container.querySelectorAll("[data-topic]")
+        .forEach(btn => {
+            btn.addEventListener("click", function () {
 
-    await apiFetch(`${API}/exams/${currentExamId}/topics`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic_id: topicId })
-    });
+                const topicId = Number(this.dataset.topic);
 
-    selectedTopics.push(topicId);
+                const toDelete = [];
 
-    await loadTopicsPanels();
-}
+                examState.questions.forEach((tId, qId) => {
+                    if (tId === topicId) {
+                        toDelete.push(qId);
+                    }
+                });
 
-async function removeTopicFromExam(topicId) {
+                toDelete.forEach(qId => {
+                    examState.questions.delete(qId);
+                });
 
-    await apiFetch(`${API}/exams/${currentExamId}/topics/${topicId}`, {
-        method: "DELETE"
-    });
-
-    // eliminar preguntas de ese tema del estado local
-    selectedQuestions = selectedQuestions.filter(q => q.topic_id !== topicId);
-
-    selectedTopics = selectedTopics.filter(t => t !== topicId);
-
-    await loadTopicsPanels();
+                renderSelectedSummary();
+                syncCheckboxes();
+            });
+        });
 }
 
 document.getElementById("addExamBtn")
@@ -597,21 +600,31 @@ document.getElementById("addExamBtn")
 
     currentExamId = null;
 
-    document.getElementById("availableTopics").innerHTML = "";
-    document.getElementById("assignedTopics").innerHTML = "";
-    document.getElementById("availableQuestions").innerHTML = "";
-    document.getElementById("assignedQuestions").innerHTML = "";
+    examState.questions.clear();
+    document.getElementById("selectedSummary").innerHTML = "";
+    document.getElementById("questionsSelector").innerHTML = "";
 
     document.getElementById("examBuilder").style.display = "block";
+
+    await loadTopicsSelect();
 });
 
 document.getElementById("cancelExamBtn")
-    ?.addEventListener("click", () => {
-        document.getElementById("examBuilder").style.display = "none";
-        currentExamId = null;
-    });
+?.addEventListener("click", () => {
+
+    document.getElementById("examBuilder").style.display = "none";
+
+    examState.questions.clear();
+    currentExamId = null;
+
+    document.getElementById("selectedSummary").innerHTML = "";
+    document.getElementById("questionsSelector").innerHTML = "";
+});
 
 let currentExamId = null;
+let examState = {
+    questions: new Map() // questionId -> topicId
+};
 
 document.getElementById("saveExamBtn")
 ?.addEventListener("click", async () => {
@@ -625,19 +638,10 @@ document.getElementById("saveExamBtn")
 
     try {
 
-        let response;
+        // Crear o actualizar examen
+        if (!currentExamId) {
 
-        if (currentExamId) {
-
-            await apiFetch(`${API}/exams/${currentExamId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name })
-            });
-
-        } else {
-
-            response = await apiFetch(`${API}/exams`, {
+            const response = await apiFetch(`${API}/exams`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name })
@@ -645,15 +649,35 @@ document.getElementById("saveExamBtn")
 
             currentExamId = response.id;
 
-            // Cargar paneles inmediatamente
-            await loadTopicsPanels();
-            await loadQuestionsPanels();
+        } else {
 
-            return; // no cerramos el builder aún
+            await apiFetch(`${API}/exams/${currentExamId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name })
+            });
+
+            // 🔥 BORRAR TODAS LAS RELACIONES ANTES
+            await apiFetch(`${API}/exams/${currentExamId}/questions`, {
+                method: "DELETE"
+            });
         }
 
-        document.getElementById("examBuilder").style.display = "none";
+        // 🔥 Insertar TODAS desde memoria
+        for (let questionId of examState.questions.keys()) {
+
+            await apiFetch(`${API}/exams/${currentExamId}/questions`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question_id: questionId })
+            });
+        }
+
+        alert("Examen guardado correctamente");
+
+        examState.questions.clear();
         currentExamId = null;
+        document.getElementById("examBuilder").style.display = "none";
         loadExams();
 
     } catch (error) {
@@ -669,8 +693,29 @@ async function editExam(id, name) {
     document.getElementById("examName").value = name;
     document.getElementById("examBuilder").style.display = "block";
 
-    await loadTopicsPanels();
-    await loadQuestionsPanels();
+    examState.questions.clear();
+
+    // 🔥 Cargar preguntas ya asociadas
+    const assigned = await apiFetch(`${API}/exams/${id}/questions`);
+
+    assigned.forEach(q => {
+        examState.questions.set(q.id, q.topic_id);
+    });
+
+    await loadTopicsSelect();
+    renderSelectedSummary();
+    syncCheckboxes();
+}
+
+function syncCheckboxes() {
+
+    const checkboxes = document.querySelectorAll("#questionsSelector input[type='checkbox']");
+
+    checkboxes.forEach(cb => {
+        const qId = Number(cb.value);
+
+        cb.checked = examState.questions.has(qId);
+    });
 }
 
 async function deleteExam(id) {

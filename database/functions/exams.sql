@@ -164,8 +164,9 @@ $$ LANGUAGE plpgsql;
 -- Obtener preguntas asociadas a un examen
 CREATE OR REPLACE FUNCTION fn_exam_questions_get_by_exam(p_exam_id INTEGER)
 RETURNS TABLE (
-    question_id INTEGER,
-    question_text TEXT
+    id INTEGER,
+    question_text TEXT,
+    topic_id INTEGER
 )
 AS $$
 BEGIN
@@ -178,38 +179,12 @@ BEGIN
     RETURN QUERY
     SELECT 
         q.id,
-        q.question_text
+        q.question_text,
+        q.topic_id
     FROM exam_questions eq
     INNER JOIN questions q ON q.id = eq.question_id
     WHERE eq.exam_id = p_exam_id
     ORDER BY q.id;
-END;
-$$ LANGUAGE plpgsql;
-
-
--- Asignar pregunta a examen
-CREATE OR REPLACE FUNCTION fn_exam_questions_add(
-    p_exam_id INTEGER,
-    p_question_id INTEGER
-)
-RETURNS VOID
-AS $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM exams e WHERE e.id = p_exam_id
-    ) THEN
-        RAISE EXCEPTION 'El examen no existe';
-    END IF;
-
-    IF NOT EXISTS (
-        SELECT 1 FROM questions q WHERE q.id = p_question_id
-    ) THEN
-        RAISE EXCEPTION 'La pregunta no existe';
-    END IF;
-
-    INSERT INTO exam_questions (exam_id, question_id)
-    VALUES (p_exam_id, p_question_id)
-    ON CONFLICT (exam_id, question_id) DO NOTHING;
 END;
 $$ LANGUAGE plpgsql;
 

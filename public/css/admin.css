@@ -187,6 +187,7 @@ button {
     margin-bottom: 1rem;
     border-radius: 8px;
     border: none;
+    color:white;
 }
 
 .modal-footer {
@@ -244,13 +245,15 @@ button {
 .panel {
     flex: 1;
     border: 1px solid #ddd;
+    color: #000000;
     padding: 10px;
     min-height: 200px;
-    background: #fafafa;
+    background: #beedf5;
 }
 
 .panel h4 {
     margin-bottom: 10px;
+    color: #000000;
 }
 
 .panel div {

@@ -43,18 +43,18 @@ const getById = async (req, res) => {
 ========================================= */
 const getByTopic = async (req, res) => {
     try {
-        const { topic_id } = req.query;
 
-        if (topic_id) {
-            const result = await pool.query(
-                queries.getByTopic,
-                [topic_id]
-            );
-            return res.json(result.rows);
+        const topicId = parseInt(req.query.topic_id);
+
+        if (!Number.isInteger(topicId)) {
+            return res.status(400).json({
+                error: "topic_id inválido"
+            });
         }
 
         const result = await pool.query(
-            queries.get
+            queries.getByTopic,
+            [topicId]
         );
 
         res.json(result.rows);
