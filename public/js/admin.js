@@ -447,7 +447,13 @@ async function loadTopicsSelect() {
 
     const topics = await apiFetch(`${API}/topics`);
 
+    topicsCache.clear(); // limpiar cache
+
     topics.forEach(topic => {
+
+        // 🔥 Guardamos nombre en memoria
+        topicsCache.set(topic.id, topic.name);
+
         const option = document.createElement("option");
         option.value = topic.id;
         option.textContent = topic.name;
@@ -531,8 +537,10 @@ function renderSelectedSummary() {
         topicDiv.style.padding = "10px";
         topicDiv.style.marginBottom = "10px";
 
+        const topicName = topicsCache.get(Number(topicId)) || `Tema ${topicId}`;
+
         topicDiv.innerHTML = `
-            <strong>Tema ${topicId}</strong>
+            <strong>Tema: ${topicName}</strong>
             <button data-topic="${topicId}" style="float:right;color:red;">
                 Eliminar Tema
             </button>
@@ -625,6 +633,7 @@ let currentExamId = null;
 let examState = {
     questions: new Map() // questionId -> topicId
 };
+let topicsCache = new Map(); // topicId -> topicName
 
 document.getElementById("saveExamBtn")
 ?.addEventListener("click", async () => {
@@ -657,10 +666,32 @@ document.getElementById("saveExamBtn")
                 body: JSON.stringify({ name })
             });
 
-            // 🔥 BORRAR TODAS LAS RELACIONES ANTES
-            await apiFetch(`${API}/exams/${currentExamId}/questions`, {
-                method: "DELETE"
-            });
+            // 1️⃣ Obtener preguntas actuales del examen
+            const existing = await apiFetch(`${API}/exams/${currentExamId}/questions`);
+            const existingIds = existing.map(q => q.id);
+
+            // 2️⃣ Preguntas seleccionadas actualmente en memoria
+            const selectedIds = Array.from(examState.questions.keys());
+
+            // 3️⃣ Eliminar las que fueron desmarcadas
+            for (let id of existingIds) {
+                if (!selectedIds.includes(id)) {
+                    await apiFetch(`${API}/exams/${currentExamId}/questions/${id}`, {
+                        method: "DELETE"
+                    });
+                }
+            }
+
+            // 4️⃣ Insertar las nuevas
+            for (let id of selectedIds) {
+                if (!existingIds.includes(id)) {
+                    await apiFetch(`${API}/exams/${currentExamId}/questions`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ question_id: id })
+                    });
+                }
+            }
         }
 
         // 🔥 Insertar TODAS desde memoria
