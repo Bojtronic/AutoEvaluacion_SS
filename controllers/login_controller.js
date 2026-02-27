@@ -22,17 +22,19 @@ const login = async (req, res) => {
 
         const user = result.rows[0];
 
-        // Si es admin
+        // ADMIN
         if (user.role === "admin") {
             return res.status(200).json({
                 success: true,
+                user_id: user.user_id,  
                 role: user.role
             });
         }
 
-        // Si es student
+        // STUDENT
         return res.status(200).json({
             success: true,
+            user_id: user.user_id, 
             role: user.role,
             exam: {
                 exam_id: user.exam_id,
@@ -47,7 +49,6 @@ const login = async (req, res) => {
 
         console.error("Login error:", error.message);
 
-        // Aquí capturamos los RAISE EXCEPTION
         return res.status(400).json({
             success: false,
             message: error.message

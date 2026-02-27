@@ -16,10 +16,16 @@ let attemptId = null;
 // ==========================================
 async function startExam() {
 
-    const user_id = localStorage.getItem("user_id");
-    const exam_id = localStorage.getItem("exam_id");
+    const user_id = parseInt(localStorage.getItem("user_id"));
+    const exam_id = parseInt(localStorage.getItem("exam_id"));
 
-    const response = await fetch("/api/start-exam", {
+    if (!user_id || !exam_id) {
+        alert("Sesión inválida. Inicie sesión nuevamente.");
+        window.location.href = "/";
+        return;
+    }
+
+    const response = await fetch("/api/exams/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id, exam_id })
@@ -125,7 +131,7 @@ function showCurrentGroup() {
 // ==========================================
 async function finishExam() {
 
-    const response = await fetch("/api/finish-exam", {
+    const response = await fetch("/api/exams/finish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

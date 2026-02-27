@@ -26,9 +26,12 @@ document.getElementById("loginForm").addEventListener("submit", async function (
             return;
         }
 
+            
+
         // Guardar sesión
         localStorage.setItem("role", data.role);
         localStorage.setItem("username", username);
+        localStorage.setItem("user_id", data.user_id);
 
         if (data.role === "admin") {
             window.location.href = "admin.html";
