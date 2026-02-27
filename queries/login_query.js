@@ -1,5 +1,5 @@
-const auth = "SELECT * FROM authenticate_user($1, $2);";
+const login = "SELECT * FROM fn_users_login($1, $2);";
 
 module.exports = {
-    auth
-}
+    login
+};

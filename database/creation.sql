@@ -52,8 +52,6 @@ CREATE TABLE exam_questions (
     UNIQUE (exam_id, question_id)
 );
 
-
--------------------------------------------------------------------------------
 -- Control de intentos permitidos
 CREATE TABLE user_exam_limits (
     id SERIAL PRIMARY KEY,
@@ -62,7 +60,6 @@ CREATE TABLE user_exam_limits (
     max_attempts INTEGER NOT NULL DEFAULT 1,
     UNIQUE(user_id, exam_id)
 );
--------------------------------------------------------------------------------
 
 CREATE TABLE attempts (
     id SERIAL PRIMARY KEY,

@@ -203,3 +203,146 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Inicio de examen para 1 usuario
+CREATE OR REPLACE FUNCTION fn_start_exam(
+    p_user_id INTEGER,
+    p_exam_id INTEGER
+)
+RETURNS TABLE (
+    attempt_id INTEGER,
+    question_id INTEGER,
+    topic VARCHAR,
+    question TEXT,
+    option_id INTEGER,
+    option_text TEXT
+)
+AS $$
+DECLARE
+    v_max_attempts INTEGER;
+    v_used_attempts INTEGER;
+    v_attempt_number INTEGER;
+    v_attempt_id INTEGER;
+BEGIN
+
+    -- Validar que el examen esté asignado
+    SELECT max_attempts
+    INTO v_max_attempts
+    FROM user_exam_limits
+    WHERE user_id = p_user_id
+      AND exam_id = p_exam_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El examen no está asignado al usuario';
+    END IF;
+
+    -- Contar intentos usados
+    SELECT COUNT(*)
+    INTO v_used_attempts
+    FROM attempts
+    WHERE user_id = p_user_id
+      AND exam_id = p_exam_id;
+
+    IF v_used_attempts >= v_max_attempts THEN
+        RAISE EXCEPTION 'No le quedan intentos disponibles';
+    END IF;
+
+    -- Calcular número de intento
+    v_attempt_number := v_used_attempts + 1;
+
+    -- Crear intento
+    INSERT INTO attempts (
+        user_id,
+        exam_id,
+        attempt_number,
+        started_at
+    )
+    VALUES (
+        p_user_id,
+        p_exam_id,
+        v_attempt_number,
+        NOW()
+    )
+    RETURNING id INTO v_attempt_id;
+
+    -- Devolver preguntas y opciones
+    RETURN QUERY
+    SELECT
+        v_attempt_id,
+        q.id,
+        t.name,
+        q.question_text,
+        o.id,
+        o.option_text
+    FROM exam_questions eq
+    JOIN questions q ON q.id = eq.question_id
+    JOIN topics t ON t.id = q.topic_id
+    JOIN options o ON o.question_id = q.id
+    WHERE eq.exam_id = p_exam_id
+    ORDER BY t.name, q.id;
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Fin de examen para 1 usuario
+CREATE OR REPLACE FUNCTION fn_finish_exam(
+    p_attempt_id INTEGER,
+    p_answers JSON
+)
+RETURNS TABLE (
+    score NUMERIC,
+    correct INTEGER,
+    incorrect INTEGER
+)
+AS $$
+DECLARE
+    v_total INTEGER;
+    v_correct INTEGER;
+    v_score NUMERIC;
+BEGIN
+
+    -- Insertar respuestas
+    INSERT INTO attempt_answers (
+        attempt_id,
+        question_id,
+        selected_option_id,
+        is_correct
+    )
+    SELECT
+        p_attempt_id,
+        (elem->>'question_id')::INTEGER,
+        (elem->>'selected_option_id')::INTEGER,
+        o.is_correct
+    FROM json_array_elements(p_answers) elem
+    JOIN options o
+        ON o.id = (elem->>'selected_option_id')::INTEGER
+       AND o.question_id = (elem->>'question_id')::INTEGER;
+
+    -- Calcular totales
+    SELECT COUNT(*)
+    INTO v_total
+    FROM attempt_answers
+    WHERE attempt_id = p_attempt_id;
+
+    SELECT COUNT(*)
+    INTO v_correct
+    FROM attempt_answers
+    WHERE attempt_id = p_attempt_id
+      AND is_correct = TRUE;
+
+    v_score := ROUND((v_correct::NUMERIC / v_total) * 100, 2);
+
+    -- Actualizar intento
+    UPDATE attempts
+    SET score = v_score,
+        finished_at = NOW()
+    WHERE id = p_attempt_id;
+
+    RETURN QUERY
+    SELECT
+        v_score,
+        v_correct,
+        (v_total - v_correct);
+
+END;
+$$ LANGUAGE plpgsql;

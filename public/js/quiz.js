@@ -4,26 +4,45 @@ const questionsContainer = document.getElementById("questionsContainer");
 const topicTitle = document.getElementById("topicTitle");
 const nextBtn = document.getElementById("nextBtn");
 
-// CONFIGURACIÓN
 const QUESTIONS_PER_GROUP = 3;
 
-// Estado
 let questions = [];
 let groupedQuestions = [];
 let currentGroupIndex = 0;
+let attemptId = null;
 
+// ==========================================
+// INICIAR EXAMEN REAL
+// ==========================================
+async function startExam() {
 
+    const user_id = localStorage.getItem("user_id");
+    const exam_id = localStorage.getItem("exam_id");
 
-// Obtener preguntas desde backend
-async function loadQuestions() {
-    const response = await fetch("/api/questions");
-    questions = await response.json();
+    const response = await fetch("/api/start-exam", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id, exam_id })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        alert(data.message);
+        window.location.href = "/";
+        return;
+    }
+
+    attemptId = data.attempt_id;
+    questions = data.questions;
 
     groupQuestionsByTopic();
     showCurrentGroup();
 }
 
-// Agrupar preguntas por tema
+// ==========================================
+// AGRUPAR POR TEMA
+// ==========================================
 function groupQuestionsByTopic() {
     const topics = {};
 
@@ -34,7 +53,6 @@ function groupQuestionsByTopic() {
         topics[q.topic].push(q);
     });
 
-    // Convertir a grupos de N preguntas
     groupedQuestions = [];
 
     Object.keys(topics).forEach(topic => {
@@ -47,29 +65,30 @@ function groupQuestionsByTopic() {
     });
 }
 
-// Mostrar grupo actual
+// ==========================================
+// MOSTRAR GRUPO
+// ==========================================
 function showCurrentGroup() {
+
     const group = groupedQuestions[currentGroupIndex];
 
     topicTitle.textContent = group.topic;
     questionsContainer.innerHTML = "";
 
     group.questions.forEach((q, index) => {
+
         const card = document.createElement("div");
         card.className = "question-card";
-
-        const randomOptions = getRandomOptions(q, 5);
 
         card.innerHTML = `
             <h3>${index + 1}. ${q.question}</h3>
             <div class="options">
-                ${randomOptions.map((opt, i) => `
+                ${q.options.map(opt => `
                     <label class="option">
                         <input 
                             type="radio" 
                             name="question-${q.id}" 
-                            value="${i}" 
-                            data-correct="${opt.isCorrect}">
+                            value="${opt.id}">
                         ${opt.text}
                     </label>
                 `).join("")}
@@ -83,65 +102,60 @@ function showCurrentGroup() {
         inputs.forEach(input => {
             input.addEventListener("change", () => {
 
-                // Eliminar respuesta previa de esta pregunta
                 userAnswers = userAnswers.filter(
-                    ans => ans.questionId !== q.id
+                    ans => ans.question_id !== q.id
                 );
 
                 userAnswers.push({
-                    questionId: q.id,
-                    question: q.question,
-                    topic: q.topic,
-                    selectedOption: input.parentElement.textContent.trim(),
-                    isCorrect: input.dataset.correct === "true",
-                    correctOption: q.options[q.correctIndex]
+                    question_id: q.id,
+                    selected_option_id: parseInt(input.value)
                 });
             });
         });
-
     });
 
-    if (currentGroupIndex === groupedQuestions.length - 1) {
-        nextBtn.textContent = "Finalizar";
-    } else {
-        nextBtn.textContent = "Siguiente";
+    nextBtn.textContent =
+        currentGroupIndex === groupedQuestions.length - 1
+        ? "Finalizar"
+        : "Siguiente";
+}
+
+// ==========================================
+// FINALIZAR EXAMEN
+// ==========================================
+async function finishExam() {
+
+    const response = await fetch("/api/finish-exam", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            attempt_id: attemptId,
+            answers: userAnswers
+        })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        alert(data.message);
+        return;
     }
+
+    // Mostrar resultado simple
+    alert(`Examen finalizado\nNota: ${data.score}\nCorrectas: ${data.correct}\nIncorrectas: ${data.incorrect}`);
+
+    window.location.href = "/";
 }
 
-
-function shuffleArray(array) {
-    return array.sort(() => Math.random() - 0.5);
-}
-
-function getRandomOptions(question, totalOptions = 5) {
-    const correctOption = {
-        text: question.options[question.correctIndex],
-        isCorrect: true
-    };
-
-    const incorrectOptions = question.options
-        .map((opt, index) => ({ text: opt, index }))
-        .filter(opt => opt.index !== question.correctIndex);
-
-    shuffleArray(incorrectOptions);
-
-    const selectedIncorrect = incorrectOptions
-        .slice(0, totalOptions - 1)
-        .map(opt => ({ text: opt.text, isCorrect: false }));
-
-    const finalOptions = [correctOption, ...selectedIncorrect];
-
-    return shuffleArray(finalOptions);
-}
-
-
-// Botón siguiente
+// ==========================================
+// BOTÓN SIGUIENTE
+// ==========================================
 nextBtn.addEventListener("click", () => {
 
     const group = groupedQuestions[currentGroupIndex];
 
     const unanswered = group.questions.some(q =>
-        !userAnswers.find(ans => ans.questionId === q.id)
+        !userAnswers.find(ans => ans.question_id === q.id)
     );
 
     if (unanswered) {
@@ -153,16 +167,9 @@ nextBtn.addEventListener("click", () => {
         currentGroupIndex++;
         showCurrentGroup();
     } else {
-        // Guardar respuestas
-        localStorage.setItem(
-            "quizResults",
-            JSON.stringify(userAnswers)
-        );
-
-        window.location.href = "/html/result.html";
+        finishExam();
     }
 });
 
-
-// Inicializar
-loadQuestions();
+// Iniciar examen real
+startExam();

@@ -27,6 +27,14 @@ const addQuestion = "SELECT fn_exam_questions_add($1, $2)";
 const removeQuestion = "SELECT fn_exam_questions_remove($1, $2)";
 
 
+// ================================
+// START / FINISH EXAM
+// ================================
+
+const startExam = "SELECT * FROM fn_start_exam($1, $2)";
+const finishExam = "SELECT * FROM fn_finish_exam($1, $2::JSON)";
+
+
 module.exports = {
     // Exams
     get,
@@ -43,5 +51,9 @@ module.exports = {
     // Exam Questions
     getQuestionsByExam,
     addQuestion,
-    removeQuestion
+    removeQuestion,
+
+    // Exam Execution
+    startExam,
+    finishExam
 };

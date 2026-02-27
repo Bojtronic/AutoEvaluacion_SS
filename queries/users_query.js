@@ -14,7 +14,7 @@ const remove = "SELECT fn_users_delete($1)";
    LOGIN
 ========================================= */
 
-const login = "SELECT * FROM fn_users_login($1, $2)";
+const login = "SELECT * FROM fn_users_login($1, $2);";
 
 module.exports = {
     get,

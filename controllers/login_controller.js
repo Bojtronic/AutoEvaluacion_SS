@@ -15,19 +15,42 @@ const login = async (req, res) => {
 
         if (result.rows.length === 0) {
             return res.status(401).json({
+                success: false,
                 message: "Credenciales inválidas"
             });
         }
 
-        res.status(200).json({
+        const user = result.rows[0];
+
+        // Si es admin
+        if (user.role === "admin") {
+            return res.status(200).json({
+                success: true,
+                role: user.role
+            });
+        }
+
+        // Si es student
+        return res.status(200).json({
             success: true,
-            role: result.rows[0].role
+            role: user.role,
+            exam: {
+                exam_id: user.exam_id,
+                exam_name: user.exam_name,
+                max_attempts: user.max_attempts,
+                used_attempts: user.used_attempts,
+                remaining_attempts: user.remaining_attempts
+            }
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            message: "Error en el proceso de login"
+
+        console.error("Login error:", error.message);
+
+        // Aquí capturamos los RAISE EXCEPTION
+        return res.status(400).json({
+            success: false,
+            message: error.message
         });
     }
 };

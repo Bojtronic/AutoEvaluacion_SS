@@ -73,5 +73,19 @@ router.post('/:id/questions', controller.addQuestion);
 ========================================= */
 router.delete('/:id/questions/:questionId', controller.removeQuestion);
 
+/* =========================================
+   START EXAM
+   POST /api/exams/start
+   body: { user_id, exam_id }
+========================================= */
+router.post('/start', controller.startExam);
+
+/* =========================================
+   FINISH EXAM
+   POST /api/exams/finish
+   body: { attempt_id, answers }
+========================================= */
+router.post('/finish', controller.finishExam);
+
 
 module.exports = router;

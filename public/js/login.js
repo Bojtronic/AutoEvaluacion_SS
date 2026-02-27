@@ -1,4 +1,4 @@
-document.getElementById("loginForm").addEventListener("submit", async function(e) {
+document.getElementById("loginForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const username = document.getElementById("username").value.trim();
@@ -15,35 +15,45 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     try {
         const response = await fetch("/api/login", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
         });
 
         const data = await response.json();
 
-        console.log(data);
-
         if (!response.ok || !data.success) {
-            errorMsg.textContent = data.message || "Credenciales incorrectas.";
+            errorMsg.textContent = data.message;
             return;
         }
 
-        // Guardar sesión simple
+        // Guardar sesión
         localStorage.setItem("role", data.role);
         localStorage.setItem("username", username);
 
-        // Redirección según rol
         if (data.role === "admin") {
             window.location.href = "admin.html";
-        } else if (data.role === "student") {
+            return;
+        }
+
+        if (data.role === "student") {
+
+            if (!data.exam) {
+                errorMsg.textContent = "No tiene examen asignado.";
+                return;
+            }
+
+            if (data.exam.remaining_attempts <= 0) {
+                errorMsg.textContent = "No le quedan intentos disponibles.";
+                return;
+            }
+
+            // Guardar datos del examen
+            localStorage.setItem("exam_id", data.exam.exam_id);
+            localStorage.setItem("exam_name", data.exam.exam_name);
+            localStorage.setItem("remaining_attempts", data.exam.remaining_attempts);
+
             window.location.href = "quiz.html";
-        } else {
-            errorMsg.textContent = "No reconocido.";
+            return;
         }
 
     } catch (error) {

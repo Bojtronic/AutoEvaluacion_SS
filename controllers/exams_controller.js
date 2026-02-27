@@ -246,6 +246,106 @@ const removeQuestion = async (req, res) => {
     }
 };
 
+
+const startExam = async (req, res) => {
+    try {
+
+        const { user_id, exam_id } = req.body;
+
+        // VALIDACIÓN DE SEGURIDAD
+        if (!user_id || !exam_id) {
+            return res.status(400).json({
+                success: false,
+                message: "Datos incompletos para iniciar el examen"
+            });
+        }
+
+        const result = await pool.query(
+            queries.startExam,
+            [user_id, exam_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No se encontraron preguntas para este examen"
+            });
+        }
+
+        const attempt_id = result.rows[0].attempt_id;
+
+        const questionsMap = {};
+
+        result.rows.forEach(row => {
+
+            if (!questionsMap[row.question_id]) {
+                questionsMap[row.question_id] = {
+                    id: row.question_id,
+                    topic: row.topic,
+                    question: row.question,
+                    options: []
+                };
+            }
+
+            questionsMap[row.question_id].options.push({
+                id: row.option_id,
+                text: row.option_text
+            });
+        });
+
+        const formattedQuestions = Object.values(questionsMap);
+
+        res.status(200).json({
+            success: true,
+            attempt_id,
+            questions: formattedQuestions
+        });
+
+    } catch (error) {
+
+        console.error("Start exam error:", error.message);
+
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+
+const finishExam = async (req, res) => {
+    try {
+
+        const { attempt_id, answers } = req.body;
+
+        const result = await pool.query(
+            queries.finishExam,
+            [attempt_id, JSON.stringify(answers)]
+        );
+
+        const data = result.rows[0];
+
+        res.status(200).json({
+            success: true,
+            score: data.score,
+            correct: data.correct,
+            incorrect: data.incorrect
+        });
+
+    } catch (error) {
+
+        console.error("Finish exam error:", error.message);
+
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+
 module.exports = {
     get,
     getById,
@@ -257,5 +357,7 @@ module.exports = {
     removeTopic,
     getQuestions,
     addQuestion,
-    removeQuestion
+    removeQuestion,
+    startExam,
+    finishExam
 };
