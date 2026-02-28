@@ -9,7 +9,7 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(100) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    role_id INTEGER REFERENCES roles(id),
+    role_id INTEGER REFERENCES roles(id) ON DELETE CASCADE,
     active BOOLEAN DEFAULT TRUE
 );
 
@@ -41,14 +41,14 @@ CREATE TABLE exams (
 CREATE TABLE exam_topics (
     id SERIAL PRIMARY KEY,
     exam_id INTEGER REFERENCES exams(id) ON DELETE CASCADE,
-    topic_id INTEGER REFERENCES topics(id),
+    topic_id INTEGER REFERENCES topics(id) ON DELETE CASCADE,
     UNIQUE (exam_id, topic_id)
 );
 
 CREATE TABLE exam_questions (
     id SERIAL PRIMARY KEY,
     exam_id INTEGER REFERENCES exams(id) ON DELETE CASCADE,
-    question_id INTEGER REFERENCES questions(id),
+    question_id INTEGER REFERENCES questions(id) ON DELETE CASCADE,
     UNIQUE (exam_id, question_id)
 );
 
@@ -57,14 +57,14 @@ CREATE TABLE user_exam_limits (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     exam_id INTEGER REFERENCES exams(id) ON DELETE CASCADE,
-    max_attempts INTEGER NOT NULL DEFAULT 1,
+    attempts_allowed INTEGER NOT NULL DEFAULT 1,
     UNIQUE(user_id, exam_id)
 );
 
 CREATE TABLE attempts (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id),
-    exam_id INTEGER REFERENCES exams(id),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    exam_id INTEGER REFERENCES exams(id) ON DELETE CASCADE,
     attempt_number INTEGER,
     score NUMERIC(5,2),
     started_at TIMESTAMP,
@@ -75,7 +75,7 @@ CREATE TABLE attempts (
 CREATE TABLE attempt_answers (
     id SERIAL PRIMARY KEY,
     attempt_id INTEGER REFERENCES attempts(id) ON DELETE CASCADE,
-    question_id INTEGER REFERENCES questions(id),
+    question_id INTEGER REFERENCES questions(id) ON DELETE CASCADE,
     selected_option_id INTEGER,
     is_correct BOOLEAN,
     FOREIGN KEY (selected_option_id, question_id)

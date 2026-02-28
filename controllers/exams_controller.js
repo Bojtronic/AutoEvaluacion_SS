@@ -319,6 +319,13 @@ const finishExam = async (req, res) => {
 
         const { attempt_id, answers } = req.body;
 
+        if (!attempt_id || !answers || !Array.isArray(answers)) {
+            return res.status(400).json({
+                success: false,
+                message: "Datos incompletos para finalizar el examen"
+            });
+        }
+
         const result = await pool.query(
             queries.finishExam,
             [attempt_id, JSON.stringify(answers)]

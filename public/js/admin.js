@@ -100,10 +100,10 @@ document.getElementById("addTopicBtn")
 
         openModal("Nuevo Tema", `
             <label>Nombre</label>
-            <input type="text" id="topicName">
+            <input type="text" id="topicName" style="color:black;">
 
             <label>Descripción</label>
-            <textarea id="topicDescription"></textarea>
+            <textarea id="topicDescription" style="color:black;"></textarea>
         `);
 
         modalSaveBtn.onclick = async () => {
@@ -302,7 +302,8 @@ document.getElementById("addQuestionBtn")
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         topic_id,
-                        question_text
+                        question_text,
+                        options: optionList
                     })
                 });
 
@@ -451,7 +452,7 @@ async function loadTopicsSelect() {
 
     topics.forEach(topic => {
 
-        // 🔥 Guardamos nombre en memoria
+        // Guardar nombre en memoria
         topicsCache.set(topic.id, topic.name);
 
         const option = document.createElement("option");
@@ -496,7 +497,10 @@ document.getElementById("topicSelect")
         checkbox.addEventListener("change", function () {
 
             if (this.checked) {
-                examState.questions.set(q.id, topicId);
+                examState.questions.set(q.id, {
+                    topicId: topicId,
+                    text: q.question_text
+                });
             } else {
                 examState.questions.delete(q.id);
             }
@@ -521,13 +525,18 @@ function renderSelectedSummary() {
 
     const topicsMap = {};
 
-    examState.questions.forEach((topicId, questionId) => {
+    examState.questions.forEach((data, questionId) => {
+
+        const topicId = data.topicId;
 
         if (!topicsMap[topicId]) {
             topicsMap[topicId] = [];
         }
 
-        topicsMap[topicId].push(questionId);
+        topicsMap[topicId].push({
+            id: questionId,
+            text: data.text
+        });
     });
 
     Object.keys(topicsMap).forEach(topicId => {
@@ -546,14 +555,14 @@ function renderSelectedSummary() {
             </button>
         `;
 
-        topicsMap[topicId].forEach(questionId => {
+        topicsMap[topicId].forEach(question => {
 
             const qDiv = document.createElement("div");
             qDiv.style.marginLeft = "15px";
 
             qDiv.innerHTML = `
-                Pregunta ID: ${questionId}
-                <button data-question="${questionId}" style="color:red;">
+                Pregunta: "${question.text}"
+                <button data-question="${question.id}" style="color:red;">
                     ✕
                 </button>
             `;
@@ -584,8 +593,8 @@ function renderSelectedSummary() {
 
                 const toDelete = [];
 
-                examState.questions.forEach((tId, qId) => {
-                    if (tId === topicId) {
+                examState.questions.forEach((data, qId) => {
+                    if (data.topicId === topicId) {
                         toDelete.push(qId);
                     }
                 });
@@ -631,7 +640,7 @@ document.getElementById("cancelExamBtn")
 
 let currentExamId = null;
 let examState = {
-    questions: new Map() // questionId -> topicId
+    questions: new Map() // questionId -> { topicId, text }
 };
 let topicsCache = new Map(); // topicId -> topicName
 
@@ -666,14 +675,14 @@ document.getElementById("saveExamBtn")
                 body: JSON.stringify({ name })
             });
 
-            // 1️⃣ Obtener preguntas actuales del examen
+            // Obtener preguntas actuales del examen
             const existing = await apiFetch(`${API}/exams/${currentExamId}/questions`);
             const existingIds = existing.map(q => q.id);
 
-            // 2️⃣ Preguntas seleccionadas actualmente en memoria
+            // Preguntas seleccionadas actualmente en memoria
             const selectedIds = Array.from(examState.questions.keys());
 
-            // 3️⃣ Eliminar las que fueron desmarcadas
+            // Eliminar las que fueron desmarcadas
             for (let id of existingIds) {
                 if (!selectedIds.includes(id)) {
                     await apiFetch(`${API}/exams/${currentExamId}/questions/${id}`, {
@@ -682,7 +691,7 @@ document.getElementById("saveExamBtn")
                 }
             }
 
-            // 4️⃣ Insertar las nuevas
+            // Insertar las nuevas
             for (let id of selectedIds) {
                 if (!existingIds.includes(id)) {
                     await apiFetch(`${API}/exams/${currentExamId}/questions`, {
@@ -694,7 +703,7 @@ document.getElementById("saveExamBtn")
             }
         }
 
-        // 🔥 Insertar TODAS desde memoria
+        // Insertar TODAS desde memoria
         for (let questionId of examState.questions.keys()) {
 
             await apiFetch(`${API}/exams/${currentExamId}/questions`, {
@@ -726,11 +735,14 @@ async function editExam(id, name) {
 
     examState.questions.clear();
 
-    // 🔥 Cargar preguntas ya asociadas
+    // Cargar preguntas ya asociadas
     const assigned = await apiFetch(`${API}/exams/${id}/questions`);
 
     assigned.forEach(q => {
-        examState.questions.set(q.id, q.topic_id);
+        examState.questions.set(q.id, {
+            topicId: q.topic_id,
+            text: q.question_text
+        });
     });
 
     await loadTopicsSelect();
@@ -930,7 +942,7 @@ async function assignExam(userId) {
                 document.getElementById("assignExamSelect").value
             );
 
-            const max_attempts = parseInt(
+            const attempts_allowed = parseInt(
                 document.getElementById("examAttempts").value
             );
 
@@ -941,7 +953,7 @@ async function assignExam(userId) {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         exam_id,
-                        max_attempts
+                        attempts_allowed
                     })
                 });
 

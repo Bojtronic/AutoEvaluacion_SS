@@ -133,17 +133,17 @@ const assignExam = async (req, res) => {
     try {
 
         const userId = parseInt(req.params.id);
-        const { exam_id, max_attempts } = req.body;
+        const { exam_id, attempts_allowed } = req.body;
 
-        if (!exam_id || !max_attempts) {
+        if (!exam_id || !attempts_allowed) {
             return res.status(400).json({
-                message: "Debe enviar exam_id y max_attempts"
+                message: "Debe enviar exam_id y attempts_allowed"
             });
         }
 
         await pool.query(
             queries.assignExam,
-            [userId, exam_id, max_attempts]
+            [userId, exam_id, attempts_allowed]
         );
 
         res.status(200).json({

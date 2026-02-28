@@ -187,7 +187,7 @@ button {
     margin-bottom: 1rem;
     border-radius: 8px;
     border: none;
-    color:white;
+    color:rgb(0, 0, 0);
 }
 
 .modal-footer {

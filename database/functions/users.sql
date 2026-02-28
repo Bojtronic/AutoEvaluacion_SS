@@ -122,7 +122,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION fn_users_assign_exam(
     p_user_id INTEGER,
     p_exam_id INTEGER,
-    p_max_attempts INTEGER
+    p_attempts_allowed INTEGER
 )
 RETURNS VOID
 AS $$
@@ -155,7 +155,7 @@ BEGIN
         RAISE EXCEPTION 'El examen no existe';
     END IF;
 
-    IF p_max_attempts <= 0 THEN
+    IF p_attempts_allowed <= 0 THEN
         RAISE EXCEPTION 'La cantidad de intentos debe ser mayor a 0';
     END IF;
 
@@ -167,13 +167,13 @@ BEGIN
 
         UPDATE user_exam_limits
         SET exam_id = p_exam_id,
-            max_attempts = p_max_attempts
+            attempts_allowed = p_attempts_allowed
         WHERE user_id = p_user_id;
 
     ELSE
 
-        INSERT INTO user_exam_limits (user_id, exam_id, max_attempts)
-        VALUES (p_user_id, p_exam_id, p_max_attempts);
+        INSERT INTO user_exam_limits (user_id, exam_id, attempts_allowed)
+        VALUES (p_user_id, p_exam_id, p_attempts_allowed);
 
     END IF;
 

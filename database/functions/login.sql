@@ -7,17 +7,17 @@ RETURNS TABLE (
     role VARCHAR,
     exam_id INTEGER,
     exam_name VARCHAR,
-    max_attempts INTEGER,
+    attempts_allowed INTEGER,
     used_attempts INTEGER,
     remaining_attempts INTEGER
 )
 AS $$
 DECLARE
     v_user RECORD;
-    v_remaining_attempts INTEGER;
+    v_exam RECORD;
 BEGIN
 
-    -- Buscar usuario válido
+    -- Validar usuario
     SELECT 
         u.id,
         r.name AS role_name
@@ -32,15 +32,12 @@ BEGIN
         RAISE EXCEPTION 'Usuario o contraseña incorrectos';
     END IF;
 
-
-    -- ==============================
     -- ADMIN
-    -- ==============================
     IF LOWER(v_user.role_name) = 'admin' THEN
         RETURN QUERY
         SELECT 
-            v_user.id::INTEGER,
-            v_user.role_name::VARCHAR,
+            v_user.id,
+            v_user.role_name,
             NULL::INTEGER,
             NULL::VARCHAR,
             NULL::INTEGER,
@@ -49,62 +46,35 @@ BEGIN
         RETURN;
     END IF;
 
-
-    -- ==============================
     -- STUDENT
-    -- ==============================
     IF LOWER(v_user.role_name) = 'student' THEN
 
-        -- Validar examen asignado
-        IF NOT EXISTS (
-            SELECT 1
-            FROM user_exam_limits l
-            WHERE l.user_id = v_user.id
-        ) THEN
+        SELECT 
+            l.exam_id,
+            e.name,
+            l.attempts_allowed
+        INTO v_exam
+        FROM user_exam_limits l
+        JOIN exams e ON e.id = l.exam_id
+        WHERE l.user_id = v_user.id;
+
+        IF NOT FOUND THEN
             RAISE EXCEPTION 'No tiene examen asignado';
         END IF;
 
-
-        -- Calcular intentos restantes
-        SELECT 
-            (l.max_attempts - COALESCE(COUNT(a.id), 0))
-        INTO v_remaining_attempts
-        FROM user_exam_limits l
-        LEFT JOIN attempts a
-            ON a.user_id = l.user_id
-            AND a.exam_id = l.exam_id
-        WHERE l.user_id = v_user.id
-        GROUP BY l.max_attempts
-        LIMIT 1;
-
-
-        IF v_remaining_attempts IS NULL OR v_remaining_attempts <= 0 THEN
+        IF v_exam.attempts_allowed < 1 THEN
             RAISE EXCEPTION 'No le quedan intentos disponibles';
         END IF;
 
-
-        -- Retornar datos completos
         RETURN QUERY
         SELECT
-            v_user.id::INTEGER,
-            v_user.role_name::VARCHAR,
-            e.id::INTEGER,
-            e.name::VARCHAR,
-            l.max_attempts::INTEGER,
-            COALESCE(COUNT(a.id), 0)::INTEGER AS used_attempts,
-            (l.max_attempts - COALESCE(COUNT(a.id), 0))::INTEGER AS remaining_attempts
-        FROM user_exam_limits l
-        JOIN exams e ON e.id = l.exam_id
-        LEFT JOIN attempts a
-            ON a.user_id = l.user_id
-            AND a.exam_id = l.exam_id
-        WHERE l.user_id = v_user.id
-        GROUP BY 
-            e.id,
-            e.name,
-            l.max_attempts,
             v_user.id,
-            v_user.role_name;
+            v_user.role_name,
+            v_exam.exam_id,
+            v_exam.name,
+            v_exam.attempts_allowed,
+            NULL::INTEGER,
+            v_exam.attempts_allowed;
 
         RETURN;
     END IF;

@@ -70,18 +70,34 @@ const getByTopic = async (req, res) => {
 ========================================= */
 const add = async (req, res) => {
     try {
-        const { topic_id, question_text } = req.body;
 
-        await pool.query(
+        const { topic_id, question_text, options } = req.body;
+
+        if (!topic_id || !question_text || !options || options.length === 0) {
+            return res.status(400).json({
+                message: "Datos incompletos"
+            });
+        }
+
+        const result = await pool.query(
             queries.add,
-            [topic_id, question_text]
+            [topic_id, question_text, JSON.stringify(options)]
         );
 
-        res.status(201).json({ message: "Pregunta creada exitosamente" });
+        const question_id = result.rows[0].id;
+
+        res.status(201).json({
+            message: "Pregunta creada exitosamente",
+            id: question_id
+        });
 
     } catch (error) {
+
         console.error(error);
-        res.status(500).json({ message: error.message || "Error al crear la pregunta" });
+
+        res.status(500).json({
+            message: error.message || "Error al crear la pregunta"
+        });
     }
 };
 

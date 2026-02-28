@@ -189,6 +189,35 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Asignar pregunta a examen
+CREATE OR REPLACE FUNCTION fn_exam_questions_add(
+    p_exam_id INTEGER,
+    p_question_id INTEGER
+)
+RETURNS VOID
+AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM exams e WHERE e.id = p_exam_id
+    ) THEN
+        RAISE EXCEPTION 'El examen no existe';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM questions q WHERE q.id = p_question_id
+    ) THEN
+        RAISE EXCEPTION 'La pregunta no existe';
+    END IF;
+
+    INSERT INTO exam_questions (exam_id, question_id)
+    VALUES (p_exam_id, p_question_id)
+    ON CONFLICT (exam_id, question_id) DO NOTHING;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
 -- Eliminar pregunta de examen
 CREATE OR REPLACE FUNCTION fn_exam_questions_remove(
     p_exam_id INTEGER,
@@ -203,7 +232,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Inicio de examen para 1 usuario
+
+-- Iniciar examen
 CREATE OR REPLACE FUNCTION fn_start_exam(
     p_user_id INTEGER,
     p_exam_id INTEGER
@@ -218,15 +248,14 @@ RETURNS TABLE (
 )
 AS $$
 DECLARE
-    v_max_attempts INTEGER;
-    v_used_attempts INTEGER;
+    v_attempts_allowed INTEGER;
     v_attempt_number INTEGER;
     v_attempt_id INTEGER;
 BEGIN
 
-    -- Validar que el examen esté asignado
-    SELECT max_attempts
-    INTO v_max_attempts
+    -- Verificar que el examen esté asignado y tenga intentos disponibles
+    SELECT attempts_allowed
+    INTO v_attempts_allowed
     FROM user_exam_limits
     WHERE user_id = p_user_id
       AND exam_id = p_exam_id;
@@ -235,19 +264,16 @@ BEGIN
         RAISE EXCEPTION 'El examen no está asignado al usuario';
     END IF;
 
-    -- Contar intentos usados
-    SELECT COUNT(*)
-    INTO v_used_attempts
-    FROM attempts
-    WHERE user_id = p_user_id
-      AND exam_id = p_exam_id;
-
-    IF v_used_attempts >= v_max_attempts THEN
+    IF v_attempts_allowed < 1 THEN
         RAISE EXCEPTION 'No le quedan intentos disponibles';
     END IF;
 
-    -- Calcular número de intento
-    v_attempt_number := v_used_attempts + 1;
+    -- Calcular número de intento (solo informativo)
+    SELECT COALESCE(MAX(attempt_number), 0) + 1
+    INTO v_attempt_number
+    FROM attempts
+    WHERE user_id = p_user_id
+      AND exam_id = p_exam_id;
 
     -- Crear intento
     INSERT INTO attempts (
@@ -264,7 +290,7 @@ BEGIN
     )
     RETURNING id INTO v_attempt_id;
 
-    -- Devolver preguntas y opciones
+    -- Retornar preguntas y opciones
     RETURN QUERY
     SELECT
         v_attempt_id,
@@ -284,7 +310,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- Fin de examen para 1 usuario
+-- Terminar examen
 CREATE OR REPLACE FUNCTION fn_finish_exam(
     p_attempt_id INTEGER,
     p_answers JSON
@@ -299,7 +325,19 @@ DECLARE
     v_total INTEGER;
     v_correct INTEGER;
     v_score NUMERIC;
+    v_user_id INTEGER;
+    v_exam_id INTEGER;
 BEGIN
+
+    -- Obtener usuario y examen del intento
+    SELECT user_id, exam_id
+    INTO v_user_id, v_exam_id
+    FROM attempts
+    WHERE id = p_attempt_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Intento no válido';
+    END IF;
 
     -- Insertar respuestas
     INSERT INTO attempt_answers (
@@ -330,6 +368,10 @@ BEGIN
     WHERE attempt_id = p_attempt_id
       AND is_correct = TRUE;
 
+    IF v_total = 0 THEN
+        RAISE EXCEPTION 'No se enviaron respuestas';
+    END IF;
+
     v_score := ROUND((v_correct::NUMERIC / v_total) * 100, 2);
 
     -- Actualizar intento
@@ -337,6 +379,13 @@ BEGIN
     SET score = v_score,
         finished_at = NOW()
     WHERE id = p_attempt_id;
+
+    -- Descontar intento disponible
+    UPDATE user_exam_limits
+    SET attempts_allowed = attempts_allowed - 1
+    WHERE user_id = v_user_id
+      AND exam_id = v_exam_id
+      AND attempts_allowed > 0;
 
     RETURN QUERY
     SELECT
@@ -346,3 +395,4 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql;
+

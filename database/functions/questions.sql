@@ -44,26 +44,66 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- Crear pregunta
+-- Crear pregunta con opciones
 CREATE OR REPLACE FUNCTION fn_questions_create(
     p_topic_id INTEGER,
-    p_question_text TEXT
+    p_question_text TEXT,
+    p_options JSON
 )
-RETURNS VOID
+RETURNS INTEGER
 AS $$
+DECLARE
+    v_question_id INTEGER;
+    v_option JSON;
 BEGIN
+    -- Validar que el tema exista
     IF NOT EXISTS (
-        SELECT 1 FROM topics WHERE id = p_topic_id
+        SELECT 1 
+        FROM topics 
+        WHERE id = p_topic_id
     ) THEN
         RAISE EXCEPTION 'El tema no existe';
     END IF;
 
+    -- Validar que existan opciones
+    IF p_options IS NULL OR json_array_length(p_options) = 0 THEN
+        RAISE EXCEPTION 'Debe enviar al menos una opción';
+    END IF;
+
+    -- Validar que exista al menos una opción correcta
+    IF NOT EXISTS (
+        SELECT 1
+        FROM json_array_elements(p_options) elem
+        WHERE (elem->>'is_correct')::BOOLEAN = true
+    ) THEN
+        RAISE EXCEPTION 'Debe existir al menos una opción correcta';
+    END IF;
+
+    -- Insertar pregunta
     INSERT INTO questions (topic_id, question_text)
-    VALUES (p_topic_id, p_question_text);
+    VALUES (p_topic_id, p_question_text)
+    RETURNING id INTO v_question_id;
+
+    -- Insertar opciones
+    FOR v_option IN 
+        SELECT * FROM json_array_elements(p_options)
+    LOOP
+        INSERT INTO options (
+            question_id,
+            option_text,
+            is_correct
+        )
+        VALUES (
+            v_question_id,
+            v_option->>'option_text',
+            (v_option->>'is_correct')::BOOLEAN
+        );
+    END LOOP;
+
+    RETURN v_question_id;
+
 END;
 $$ LANGUAGE plpgsql;
-
-
 
 -- Actualizar pregunta
 CREATE OR REPLACE FUNCTION fn_questions_update(
