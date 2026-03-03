@@ -1,14 +1,15 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'postgres',
-  //user: 'jp_tcu_db_user',   
-  host: 'localhost',
-  //host: 'dpg-d3b0jkruibrs73f3gnag-a',   
+  //user: 'postgres',
+  user: 'ss',   
+  //host: 'localhost',
+  host: 'dpg-d6jijo6a2pns73f6gkvg-a',   
+  //database: 'ae_bd',
   database: 'ae_bd',
-  //database: 'jp_tcu_db_2k2q',
-  password: '12345',
-  //password: 'pgN4PHG0RBxH5lRLHHQ7RzMG0JgvVU5r',
+  //password: '12345',
+  password: 'byIOdcqpWJViWBZEs70PkNALaTO0hGIi',
+  //port: 5432
   port: 5432
 });
 
