@@ -261,3 +261,224 @@ button {
     justify-content: space-between;
     margin-bottom: 5px;
 }
+
+/* ===============================
+   RESPONSIVE DESIGN
+================================= */
+
+/* ===============================
+   TABLETS
+================================= */
+@media (max-width: 1024px) {
+
+    .cards {
+        flex-direction: column;
+    }
+
+    .dual-panel {
+        flex-direction: column;
+    }
+
+    .modal {
+        width: 90%;
+    }
+
+}
+
+
+/* ===============================
+   MOBILE
+================================= */
+@media (max-width: 768px) {
+
+    /* Layout vertical */
+    .admin-layout {
+        flex-direction: column;
+        height: auto;
+        width: 100%;
+    }
+
+    /* Sidebar arriba */
+    .sidebar {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.8rem;
+    }
+
+    .sidebar h2 {
+        margin-bottom: 0.8rem;
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    .sidebar ul {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+
+    .sidebar li {
+        white-space: nowrap;
+        padding: 0.4rem 0.7rem;
+        font-size: 0.85rem;
+        margin-bottom: 0;
+    }
+
+    .logout-btn {
+        margin-top: 0.8rem;
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    /* CONTENIDO PRINCIPAL */
+    .main-content {
+        width: 100%;
+        padding: 0.8rem;
+    }
+
+    .section {
+        width: 100%;
+    }
+
+    /* Títulos más compactos */
+    .section h1 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+    }
+
+    .section h2 {
+        font-size: 1.1rem;
+    }
+
+    /* Cards */
+    .cards {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .card {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .card h3 {
+        font-size: 1rem;
+    }
+
+    /* Tablas SIN ancho mínimo forzado */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        min-width: unset; /* 🔥 evita scroll horizontal innecesario */
+    }
+
+    th, td {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+        word-break: break-word;
+    }
+
+    /* Action bar vertical */
+    .action-bar {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .action-bar button,
+    .action-bar select {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    /* Botones generales */
+    button {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    /* Inputs compactos */
+    input,
+    select,
+    textarea {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    /* Builder examen */
+    #examBuilder {
+        width: 100%;
+    }
+
+    /* Panels */
+    .dual-panel {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.8rem;
+    }
+
+    .panel {
+        width: 100%;
+        min-height: auto;
+        padding: 0.8rem;
+    }
+
+    /* Modal */
+    .modal {
+        width: 95%;
+        max-height: 85vh;
+        padding: 1rem;
+    }
+
+    .modal-body input,
+    .modal-body textarea,
+    .modal-body select {
+        font-size: 0.85rem;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .modal-footer button {
+        width: 100%;
+    }
+
+}
+
+
+/* ===============================
+   EXTRA SMALL DEVICES
+================================= */
+@media (max-width: 480px) {
+
+    body {
+        font-size: 14px;
+    }
+
+    .sidebar li {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.6rem;
+    }
+
+    .card {
+        padding: 0.8rem;
+    }
+
+    .modal {
+        width: 95%;
+        padding: 0.8rem;
+    }
+
+}
