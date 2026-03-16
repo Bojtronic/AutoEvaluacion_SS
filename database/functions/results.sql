@@ -251,6 +251,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
 -- Obtener detalle completo de ultimo intento por usuario
 CREATE OR REPLACE FUNCTION fn_last_attempt_detail_by_user(
     p_user_id INTEGER
@@ -267,7 +268,7 @@ RETURNS TABLE (
     question_text TEXT,
     selected_option TEXT,
     is_correct BOOLEAN,
-    max_attempts INTEGER,
+    current_attempt INTEGER,
     attempts_used INTEGER,
     attempts_remaining INTEGER
 )
@@ -281,37 +282,64 @@ BEGIN
           AND a.finished_at IS NOT NULL
         ORDER BY a.finished_at DESC
         LIMIT 1
+    ),
+    attempts_count AS (
+        SELECT 
+            a.user_id,
+            a.exam_id,
+            COUNT(*)::INTEGER AS used
+        FROM attempts a
+        WHERE a.user_id = p_user_id
+          AND a.finished_at IS NOT NULL
+        GROUP BY a.user_id, a.exam_id
     )
     SELECT
-        la.id,
+        la.id AS attempt_id,
         u.username,
-        e.name,
+        e.name AS exam_name,
         la.attempt_number,
         la.score,
         la.started_at,
         la.finished_at,
-        q.id,
+        q.id AS question_id,
         q.question_text,
-        o.option_text,
+        o.option_text AS selected_option,
         aa.is_correct,
-        COALESCE(uel.max_attempts, 1),
-        COUNT(a2.id) OVER (PARTITION BY la.user_id, la.exam_id)::INTEGER,
+
+        COALESCE(uel.attempts_allowed, 1) AS current_attempt,
+
+        COALESCE(ac.used, 0) AS attempts_used,
+
         (
-            COALESCE(uel.max_attempts, 1)
-            - COUNT(a2.id) OVER (PARTITION BY la.user_id, la.exam_id)
-        )::INTEGER
+            COALESCE(uel.attempts_allowed, 1) - COALESCE(ac.used, 0)
+        )::INTEGER AS attempts_remaining
+
     FROM last_attempt la
-    INNER JOIN users u ON u.id = la.user_id
-    INNER JOIN exams e ON e.id = la.exam_id
-    INNER JOIN attempt_answers aa ON aa.attempt_id = la.id
-    INNER JOIN questions q ON q.id = aa.question_id
-    INNER JOIN options o ON o.id = aa.selected_option_id
+
+    INNER JOIN users u 
+        ON u.id = la.user_id
+
+    INNER JOIN exams e 
+        ON e.id = la.exam_id
+
+    INNER JOIN attempt_answers aa 
+        ON aa.attempt_id = la.id
+
+    INNER JOIN questions q 
+        ON q.id = aa.question_id
+
+    INNER JOIN options o 
+        ON o.id = aa.selected_option_id
+
     LEFT JOIN user_exam_limits uel 
         ON uel.user_id = la.user_id 
        AND uel.exam_id = la.exam_id
-    LEFT JOIN attempts a2 
-        ON a2.user_id = la.user_id 
-       AND a2.exam_id = la.exam_id;
+
+    LEFT JOIN attempts_count ac
+        ON ac.user_id = la.user_id
+       AND ac.exam_id = la.exam_id
+
+    ORDER BY q.id;
+
 END;
 $$ LANGUAGE plpgsql;
-

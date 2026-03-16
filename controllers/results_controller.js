@@ -274,7 +274,7 @@ const downloadUserLastAttemptPDF = async (req, res) => {
         doc.fontSize(12);
         doc.text(`Usuario: ${first.username}`);
         doc.text(`Examen: ${first.exam_name}`);
-        doc.text(`Intento #: ${first.attempt_number}`);
+        //doc.text(`Intento #: ${first.attempt_number}`);
         doc.text(`Nota: ${first.score}`);
         doc.text(`Fecha inicio: ${new Date(first.started_at).toLocaleString()}`);
         doc.text(`Fecha fin: ${new Date(first.finished_at).toLocaleString()}`);
@@ -299,8 +299,8 @@ const downloadUserLastAttemptPDF = async (req, res) => {
         doc.fontSize(12).text("Resumen:");
         doc.text(`Respuestas correctas: ${correct}`);
         doc.text(`Respuestas incorrectas: ${incorrect}`);
-        doc.text(`Intentos usados: ${first.attempts_used}`);
-        doc.text(`Intentos restantes: ${first.attempts_remaining}`);
+        //doc.text(`Intentos usados: ${first.attempts_used}`);
+        //doc.text(`Intentos restantes: ${first.attempts_remaining}`);
 
         doc.end();
 

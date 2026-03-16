@@ -1069,11 +1069,6 @@ function downloadPDF(user_id) {
     window.open(`${API}/results/user/${user_id}/pdf`, "_blank");
 }
 
-// ================== FUNCIONES PLACEHOLDER ==================
-function viewResult(id) {
-    console.log("Ver resultado:", id);
-}
-
 
 
 // ================== LOGOUT ==================
