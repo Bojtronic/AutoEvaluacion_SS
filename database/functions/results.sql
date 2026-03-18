@@ -268,6 +268,8 @@ RETURNS TABLE (
     question_text TEXT,
     selected_option TEXT,
     is_correct BOOLEAN,
+    image_data BYTEA,
+    mime_type TEXT,
     current_attempt INTEGER,
     attempts_used INTEGER,
     attempts_remaining INTEGER
@@ -306,8 +308,10 @@ BEGIN
         o.option_text AS selected_option,
         aa.is_correct,
 
-        COALESCE(uel.attempts_allowed, 1) AS current_attempt,
+        oi.image_data,
+        oi.mime_type,
 
+        COALESCE(uel.attempts_allowed, 1) AS current_attempt,
         COALESCE(ac.used, 0) AS attempts_used,
 
         (
@@ -338,6 +342,9 @@ BEGIN
     LEFT JOIN attempts_count ac
         ON ac.user_id = la.user_id
        AND ac.exam_id = la.exam_id
+
+    LEFT JOIN option_images oi 
+        ON oi.option_id = o.id
 
     ORDER BY q.id;
 

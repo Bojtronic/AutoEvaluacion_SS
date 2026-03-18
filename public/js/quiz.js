@@ -1,3 +1,4 @@
+const API = "/api";
 let userAnswers = [];
 
 const questionsContainer = document.getElementById("questionsContainer");
@@ -83,6 +84,8 @@ function showCurrentGroup() {
 
     group.questions.forEach((q, index) => {
 
+        //console.log(q.options);
+
         const card = document.createElement("div");
         card.className = "question-card";
 
@@ -95,7 +98,14 @@ function showCurrentGroup() {
                             type="radio" 
                             name="question-${q.id}" 
                             value="${opt.id}">
-                        ${opt.text}
+
+                        ${opt.text ? `<span class="option-text">${opt.text}</span>` : ""}
+
+                        ${opt.has_image ? `
+                            <img 
+                                src="${API}/questions/option-image/${opt.id}" 
+                                class="option-image">
+                        ` : ""}
                     </label>
                 `).join("")}
             </div>

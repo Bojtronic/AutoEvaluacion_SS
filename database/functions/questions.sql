@@ -4,7 +4,8 @@ RETURNS TABLE (
     id INTEGER,
     topic_id INTEGER,
     topic_name VARCHAR,
-    question_text TEXT
+    question_text TEXT,
+    options JSON
 )
 AS $$
 BEGIN
@@ -13,10 +14,29 @@ BEGIN
         q.id,
         q.topic_id,
         t.name,
-        q.question_text
+        q.question_text,
+
+        (
+            SELECT json_agg(
+                json_build_object(
+                    'id', o.id,
+                    'text', o.option_text,
+                    'is_correct', o.is_correct,
+                    'has_image', EXISTS (
+                        SELECT 1
+                        FROM option_images oi
+                        WHERE oi.option_id = o.id
+                    )
+                )
+            )
+            FROM options o
+            WHERE o.question_id = q.id
+        ) AS options
+
     FROM questions q
     INNER JOIN topics t ON t.id = q.topic_id
     ORDER BY q.id;
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -27,7 +47,8 @@ RETURNS TABLE (
     id INTEGER,
     topic_id INTEGER,
     topic_name VARCHAR,
-    question_text TEXT
+    question_text TEXT,
+    options JSON
 )
 AS $$
 BEGIN
@@ -36,10 +57,29 @@ BEGIN
         q.id,
         q.topic_id,
         t.name,
-        q.question_text
+        q.question_text,
+
+        (
+            SELECT json_agg(
+                json_build_object(
+                    'id', o.id,
+                    'text', o.option_text,
+                    'is_correct', o.is_correct,
+                    'has_image', EXISTS (
+                        SELECT 1
+                        FROM option_images oi
+                        WHERE oi.option_id = o.id
+                    )
+                )
+            )
+            FROM options o
+            WHERE o.question_id = q.id
+        ) AS options
+
     FROM questions q
     INNER JOIN topics t ON t.id = q.topic_id
     WHERE q.id = p_id;
+
 END;
 $$ LANGUAGE plpgsql;
 
@@ -50,11 +90,13 @@ CREATE OR REPLACE FUNCTION fn_questions_create(
     p_question_text TEXT,
     p_options JSON
 )
-RETURNS INTEGER
+RETURNS JSON
 AS $$
 DECLARE
     v_question_id INTEGER;
     v_option JSON;
+    v_option_id INTEGER;
+    v_options_result JSON[] := ARRAY[]::JSON[];
 BEGIN
     -- Validar que el tema exista
     IF NOT EXISTS (
@@ -84,7 +126,7 @@ BEGIN
     VALUES (p_topic_id, p_question_text)
     RETURNING id INTO v_question_id;
 
-    -- Insertar opciones
+    -- Insertar opciones y capturar IDs
     FOR v_option IN 
         SELECT * FROM json_array_elements(p_options)
     LOOP
@@ -97,13 +139,25 @@ BEGIN
             v_question_id,
             v_option->>'option_text',
             (v_option->>'is_correct')::BOOLEAN
+        )
+        RETURNING id INTO v_option_id;
+
+        -- Guardar id en array JSON
+        v_options_result := array_append(
+            v_options_result,
+            json_build_object('id', v_option_id)
         );
     END LOOP;
 
-    RETURN v_question_id;
+    -- Retornar JSON completo
+    RETURN json_build_object(
+        'question_id', v_question_id,
+        'options', v_options_result
+    );
 
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Actualizar pregunta
 CREATE OR REPLACE FUNCTION fn_questions_update(
@@ -151,7 +205,8 @@ RETURNS TABLE (
     id INTEGER,
     topic_id INTEGER,
     topic_name VARCHAR,
-    question_text TEXT
+    question_text TEXT,
+    options JSON
 )
 AS $$
 BEGIN
@@ -167,7 +222,25 @@ BEGIN
         q.id,
         q.topic_id,
         t.name,
-        q.question_text
+        q.question_text,
+
+        (
+            SELECT json_agg(
+                json_build_object(
+                    'id', o.id,
+                    'text', o.option_text,
+                    'is_correct', o.is_correct,
+                    'has_image', EXISTS (
+                        SELECT 1
+                        FROM option_images oi
+                        WHERE oi.option_id = o.id
+                    )
+                )
+            )
+            FROM options o
+            WHERE o.question_id = q.id
+        ) AS options
+
     FROM questions q
     INNER JOIN topics t ON t.id = q.topic_id
     WHERE q.topic_id = p_topic_id
@@ -175,3 +248,4 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql;
+

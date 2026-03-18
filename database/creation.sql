@@ -28,9 +28,18 @@ CREATE TABLE questions (
 CREATE TABLE options (
     id SERIAL PRIMARY KEY,
     question_id INTEGER REFERENCES questions(id) ON DELETE CASCADE,
-    option_text TEXT NOT NULL,
+    option_text TEXT,
     is_correct BOOLEAN DEFAULT FALSE,
     UNIQUE(id, question_id)
+);
+
+CREATE TABLE option_images (
+    id SERIAL PRIMARY KEY,
+    option_id INTEGER REFERENCES options(id) ON DELETE CASCADE,
+    image_data BYTEA NOT NULL,
+    mime_type TEXT NOT NULL,
+    file_name TEXT,
+    UNIQUE(option_id)
 );
 
 CREATE TABLE exams (

@@ -63,6 +63,11 @@ body {
     transition: background 0.2s;
 }
 
+.option-image {
+    max-width: 150px;
+    border-radius: 8px;
+}
+
 .option:hover {
     background-color: #1e293b;
 }

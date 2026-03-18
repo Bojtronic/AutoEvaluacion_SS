@@ -262,10 +262,14 @@ document.getElementById("addQuestionBtn")
                 <textarea id="questionText"></textarea>
 
                 <label>Opciones</label>
-                <input type="text" class="optionInput" placeholder="Opción 1">
-                <input type="text" class="optionInput" placeholder="Opción 2">
-                <input type="text" class="optionInput" placeholder="Opción 3">
-                <input type="text" class="optionInput" placeholder="Opción 4">
+
+                ${[1, 2, 3, 4].map(i => `
+                    <div class="option-block">
+                        <strong>Opción ${i}</strong>
+                        <input type="text" class="optionText" placeholder="Texto (opcional)">
+                        <input type="file" class="optionImage" accept="image/*">
+                    </div>
+                `).join("")}
 
                 <label>Respuesta Correcta</label>
                 <select id="correctOption">
@@ -277,9 +281,11 @@ document.getElementById("addQuestionBtn")
             `);
 
             modalSaveBtn.onclick = async () => {
+
                 const topic_id = document.getElementById("questionTopic").value;
                 const question_text = document.getElementById("questionText").value.trim();
-                const options = document.querySelectorAll(".optionInput");
+                const texts = document.querySelectorAll(".optionText");
+                const images = document.querySelectorAll(".optionImage");
                 const correctIndex = document.getElementById("correctOption").value;
 
                 if (!question_text) {
@@ -287,29 +293,63 @@ document.getElementById("addQuestionBtn")
                     return;
                 }
 
-                const optionList = Array.from(options).map((input, index) => ({
-                    option_text: input.value.trim(),
-                    is_correct: index == correctIndex
-                }));
+                // Construir opciones (solo texto por ahora)
+                const optionList = [];
 
-                if (optionList.some(o => !o.option_text)) {
-                    alert("Todas las opciones deben estar completas");
-                    return;
+                for (let i = 0; i < texts.length; i++) {
+
+                    const text = texts[i].value.trim();
+                    const hasImage = images[i].files.length > 0;
+
+                    if (!text && !hasImage) {
+                        alert(`La opción ${i + 1} debe tener texto o imagen`);
+                        return;
+                    }
+
+                    optionList.push({
+                        option_text: text || null,
+                        is_correct: i == correctIndex
+                    });
                 }
 
-                await apiFetch(`${API}/questions`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        topic_id,
-                        question_text,
-                        options: optionList
-                    })
-                });
+                try {
+                    // 1. Crear pregunta
+                    const response = await apiFetch(`${API}/questions`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            topic_id,
+                            question_text,
+                            options: optionList
+                        })
+                    });
 
-                closeModal();
-                loadQuestions();
-                loadDashboard();
+                    const { question_id, options } = response;
+
+                    // 2. Subir imágenes
+                    for (let i = 0; i < images.length; i++) {
+
+                        if (images[i].files.length > 0) {
+
+                            const formData = new FormData();
+                            formData.append("image", images[i].files[0]);
+                            formData.append("option_id", options[i].id);
+
+                            await fetch(`${API}/questions/option-image`, {
+                                method: "POST",
+                                body: formData
+                            });
+                        }
+                    }
+
+                    closeModal();
+                    loadQuestions();
+                    loadDashboard();
+
+                } catch (error) {
+                    console.error("Error creando pregunta:", error);
+                    alert("Error al crear la pregunta");
+                }
             };
 
         } catch (error) {
@@ -463,27 +503,27 @@ async function loadTopicsSelect() {
 }
 
 document.getElementById("topicSelect")
-?.addEventListener("change", async function () {
+    ?.addEventListener("change", async function () {
 
-    const topicId = Number(this.value);
-    const container = document.getElementById("questionsSelector");
+        const topicId = Number(this.value);
+        const container = document.getElementById("questionsSelector");
 
-    if (!topicId) return;
+        if (!topicId) return;
 
-    container.innerHTML = "";
+        container.innerHTML = "";
 
-    const questions = await apiFetch(
-        `${API}/questions/by_topic?topic_id=${topicId}`
-    );
+        const questions = await apiFetch(
+            `${API}/questions/by_topic?topic_id=${topicId}`
+        );
 
-    questions.forEach(q => {
+        questions.forEach(q => {
 
-        const isChecked = examState.questions.has(q.id);
+            const isChecked = examState.questions.has(q.id);
 
-        const div = document.createElement("div");
-        div.style.marginBottom = "6px";
+            const div = document.createElement("div");
+            div.style.marginBottom = "6px";
 
-        div.innerHTML = `
+            div.innerHTML = `
             <label style="color:white;">
                 <input type="checkbox"
                        value="${q.id}"
@@ -492,26 +532,26 @@ document.getElementById("topicSelect")
             </label>
         `;
 
-        const checkbox = div.querySelector("input");
+            const checkbox = div.querySelector("input");
 
-        checkbox.addEventListener("change", function () {
+            checkbox.addEventListener("change", function () {
 
-            if (this.checked) {
-                examState.questions.set(q.id, {
-                    topicId: topicId,
-                    text: q.question_text
-                });
-            } else {
-                examState.questions.delete(q.id);
-            }
+                if (this.checked) {
+                    examState.questions.set(q.id, {
+                        topicId: topicId,
+                        text: q.question_text
+                    });
+                } else {
+                    examState.questions.delete(q.id);
+                }
 
-            renderSelectedSummary();
-            syncCheckboxes();
+                renderSelectedSummary();
+                syncCheckboxes();
+            });
+
+            container.appendChild(div);
         });
-
-        container.appendChild(div);
     });
-});
 
 function renderSelectedSummary() {
 
@@ -610,33 +650,33 @@ function renderSelectedSummary() {
 }
 
 document.getElementById("addExamBtn")
-?.addEventListener("click", async () => {
+    ?.addEventListener("click", async () => {
 
-    document.getElementById("builderTitle").innerText = "Nuevo Examen";
-    document.getElementById("examName").value = "";
+        document.getElementById("builderTitle").innerText = "Nuevo Examen";
+        document.getElementById("examName").value = "";
 
-    currentExamId = null;
+        currentExamId = null;
 
-    examState.questions.clear();
-    document.getElementById("selectedSummary").innerHTML = "";
-    document.getElementById("questionsSelector").innerHTML = "";
+        examState.questions.clear();
+        document.getElementById("selectedSummary").innerHTML = "";
+        document.getElementById("questionsSelector").innerHTML = "";
 
-    document.getElementById("examBuilder").style.display = "block";
+        document.getElementById("examBuilder").style.display = "block";
 
-    await loadTopicsSelect();
-});
+        await loadTopicsSelect();
+    });
 
 document.getElementById("cancelExamBtn")
-?.addEventListener("click", () => {
+    ?.addEventListener("click", () => {
 
-    document.getElementById("examBuilder").style.display = "none";
+        document.getElementById("examBuilder").style.display = "none";
 
-    examState.questions.clear();
-    currentExamId = null;
+        examState.questions.clear();
+        currentExamId = null;
 
-    document.getElementById("selectedSummary").innerHTML = "";
-    document.getElementById("questionsSelector").innerHTML = "";
-});
+        document.getElementById("selectedSummary").innerHTML = "";
+        document.getElementById("questionsSelector").innerHTML = "";
+    });
 
 let currentExamId = null;
 let examState = {
@@ -645,85 +685,85 @@ let examState = {
 let topicsCache = new Map(); // topicId -> topicName
 
 document.getElementById("saveExamBtn")
-?.addEventListener("click", async () => {
+    ?.addEventListener("click", async () => {
 
-    const name = document.getElementById("examName").value.trim();
+        const name = document.getElementById("examName").value.trim();
 
-    if (!name) {
-        alert("Debe ingresar nombre del examen");
-        return;
-    }
+        if (!name) {
+            alert("Debe ingresar nombre del examen");
+            return;
+        }
 
-    try {
+        try {
 
-        // Crear o actualizar examen
-        if (!currentExamId) {
+            // Crear o actualizar examen
+            if (!currentExamId) {
 
-            const response = await apiFetch(`${API}/exams`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name })
-            });
+                const response = await apiFetch(`${API}/exams`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name })
+                });
 
-            currentExamId = response.id;
+                currentExamId = response.id;
 
-        } else {
+            } else {
 
-            await apiFetch(`${API}/exams/${currentExamId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name })
-            });
+                await apiFetch(`${API}/exams/${currentExamId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name })
+                });
 
-            // Obtener preguntas actuales del examen
-            const existing = await apiFetch(`${API}/exams/${currentExamId}/questions`);
-            const existingIds = existing.map(q => q.id);
+                // Obtener preguntas actuales del examen
+                const existing = await apiFetch(`${API}/exams/${currentExamId}/questions`);
+                const existingIds = existing.map(q => q.id);
 
-            // Preguntas seleccionadas actualmente en memoria
-            const selectedIds = Array.from(examState.questions.keys());
+                // Preguntas seleccionadas actualmente en memoria
+                const selectedIds = Array.from(examState.questions.keys());
 
-            // Eliminar las que fueron desmarcadas
-            for (let id of existingIds) {
-                if (!selectedIds.includes(id)) {
-                    await apiFetch(`${API}/exams/${currentExamId}/questions/${id}`, {
-                        method: "DELETE"
-                    });
+                // Eliminar las que fueron desmarcadas
+                for (let id of existingIds) {
+                    if (!selectedIds.includes(id)) {
+                        await apiFetch(`${API}/exams/${currentExamId}/questions/${id}`, {
+                            method: "DELETE"
+                        });
+                    }
+                }
+
+                // Insertar las nuevas
+                for (let id of selectedIds) {
+                    if (!existingIds.includes(id)) {
+                        await apiFetch(`${API}/exams/${currentExamId}/questions`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ question_id: id })
+                        });
+                    }
                 }
             }
 
-            // Insertar las nuevas
-            for (let id of selectedIds) {
-                if (!existingIds.includes(id)) {
-                    await apiFetch(`${API}/exams/${currentExamId}/questions`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ question_id: id })
-                    });
-                }
+            // Insertar TODAS desde memoria
+            for (let questionId of examState.questions.keys()) {
+
+                await apiFetch(`${API}/exams/${currentExamId}/questions`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question_id: questionId })
+                });
             }
+
+            alert("Examen guardado correctamente");
+
+            examState.questions.clear();
+            currentExamId = null;
+            document.getElementById("examBuilder").style.display = "none";
+            loadExams();
+
+        } catch (error) {
+            console.error("Error guardando examen:", error);
         }
-
-        // Insertar TODAS desde memoria
-        for (let questionId of examState.questions.keys()) {
-
-            await apiFetch(`${API}/exams/${currentExamId}/questions`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question_id: questionId })
-            });
-        }
-
-        alert("Examen guardado correctamente");
-
-        examState.questions.clear();
-        currentExamId = null;
-        document.getElementById("examBuilder").style.display = "none";
-        loadExams();
-
-    } catch (error) {
-        console.error("Error guardando examen:", error);
-    }
-});
+    });
 
 async function editExam(id, name) {
 
@@ -809,10 +849,10 @@ async function loadUsers() {
                         <button onclick="changePassword(${u.id})">Password</button>
                         <button onclick="deleteUser(${u.id})">Eliminar</button>
 
-                        ${u.role_name === "student" ? 
-                        `<button onclick="assignExam(${u.id})">Examen</button>` 
-                        : ""
-                        }
+                        ${u.role_name === "student" ?
+                    `<button onclick="assignExam(${u.id})">Examen</button>`
+                    : ""
+                }
                     </td>
                 </tr>
             `;
@@ -830,65 +870,65 @@ async function editUser(id) {
 let currentUserId = null;
 
 document.getElementById("addUserBtn")
-?.addEventListener("click", async () => {
-    openUserModal();
-});
+    ?.addEventListener("click", async () => {
+        openUserModal();
+    });
 
 document.getElementById("modalSaveBtn")
-?.addEventListener("click", async () => {
+    ?.addEventListener("click", async () => {
 
-    if (!document.getElementById("username")) return; 
-    // evita conflicto con otros modales
+        if (!document.getElementById("username")) return;
+        // evita conflicto con otros modales
 
-    const username = document.getElementById("username").value.trim();
-    const role_id = document.getElementById("roleSelect").value;
-    const active = document.getElementById("userActive").checked;
-    const passwordInput = document.getElementById("password");
+        const username = document.getElementById("username").value.trim();
+        const role_id = document.getElementById("roleSelect").value;
+        const active = document.getElementById("userActive").checked;
+        const passwordInput = document.getElementById("password");
 
-    if (!username) {
-        alert("Debe ingresar usuario");
-        return;
-    }
-
-    try {
-
-        if (currentUserId) {
-
-            await apiFetch(`${API}/users/${currentUserId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    username,
-                    role_id,
-                    active
-                })
-            });
-
-        } else {
-
-            if (!passwordInput.value) {
-                alert("Debe ingresar contraseña");
-                return;
-            }
-
-            await apiFetch(`${API}/users`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    username,
-                    password: passwordInput.value,
-                    role_id
-                })
-            });
+        if (!username) {
+            alert("Debe ingresar usuario");
+            return;
         }
 
-        closeModal();
-        loadUsers();
+        try {
 
-    } catch (error) {
-        console.error("Error guardando usuario:", error);
-    }
-});
+            if (currentUserId) {
+
+                await apiFetch(`${API}/users/${currentUserId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username,
+                        role_id,
+                        active
+                    })
+                });
+
+            } else {
+
+                if (!passwordInput.value) {
+                    alert("Debe ingresar contraseña");
+                    return;
+                }
+
+                await apiFetch(`${API}/users`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username,
+                        password: passwordInput.value,
+                        role_id
+                    })
+                });
+            }
+
+            closeModal();
+            loadUsers();
+
+        } catch (error) {
+            console.error("Error guardando usuario:", error);
+        }
+    });
 
 async function changePassword(id) {
 
@@ -1037,10 +1077,10 @@ function closeModal() {
 }
 
 document.getElementById("modalCancelBtn")
-?.addEventListener("click", closeModal);
+    ?.addEventListener("click", closeModal);
 
 document.getElementById("closeModalBtn")
-?.addEventListener("click", closeModal);
+    ?.addEventListener("click", closeModal);
 
 // ================== RESULTADOS ==================
 async function loadResults() {

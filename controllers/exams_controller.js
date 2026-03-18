@@ -289,7 +289,8 @@ const startExam = async (req, res) => {
 
             questionsMap[row.question_id].options.push({
                 id: row.option_id,
-                text: row.option_text
+                text: row.option_text,
+                has_image: row.has_image
             });
         });
 

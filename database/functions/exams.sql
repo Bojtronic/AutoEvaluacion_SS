@@ -244,7 +244,8 @@ RETURNS TABLE (
     topic VARCHAR,
     question TEXT,
     option_id INTEGER,
-    option_text TEXT
+    option_text TEXT,
+    has_image BOOLEAN
 )
 AS $$
 DECLARE
@@ -268,7 +269,7 @@ BEGIN
         RAISE EXCEPTION 'No le quedan intentos disponibles';
     END IF;
 
-    -- Calcular número de intento (solo informativo)
+    -- Calcular número de intento
     SELECT COALESCE(MAX(attempt_number), 0) + 1
     INTO v_attempt_number
     FROM attempts
@@ -290,7 +291,7 @@ BEGIN
     )
     RETURNING id INTO v_attempt_id;
 
-    -- Retornar preguntas y opciones
+    -- RETORNAR preguntas con has_image
     RETURN QUERY
     SELECT
         v_attempt_id,
@@ -298,7 +299,14 @@ BEGIN
         t.name,
         q.question_text,
         o.id,
-        o.option_text
+        o.option_text,
+
+        EXISTS (
+            SELECT 1
+            FROM option_images oi
+            WHERE oi.option_id = o.id
+        ) AS has_image
+
     FROM exam_questions eq
     JOIN questions q ON q.id = eq.question_id
     JOIN topics t ON t.id = q.topic_id

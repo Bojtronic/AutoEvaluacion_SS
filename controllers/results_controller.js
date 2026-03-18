@@ -284,10 +284,35 @@ const downloadUserLastAttemptPDF = async (req, res) => {
         doc.moveDown();
 
         data.forEach((row, index) => {
+
             doc.fontSize(11).text(`${index + 1}. ${row.question_text}`);
-            doc.text(`Respuesta seleccionada: ${row.selected_option}`);
+            doc.moveDown(0.5);
+
+            // Texto
+            if (row.selected_option) {
+                doc.text(`Respuesta: ${row.selected_option}`);
+            }
+
+            // Imagen
+            if (row.image_data) {
+                try {
+                    doc.moveDown(0.5);
+
+                    doc.image(row.image_data, {
+                        fit: [120, 120],
+                        align: "left"
+                    });
+
+                } catch (err) {
+                    console.error("Error con imagen:", err.message);
+                }
+            }
+
+            // Resultado
+            doc.moveDown(0.5);
             doc.fillColor(row.is_correct ? "green" : "red")
                 .text(row.is_correct ? "Correcta" : "Incorrecta");
+
             doc.fillColor("black");
             doc.moveDown();
         });

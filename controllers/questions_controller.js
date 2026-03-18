@@ -84,11 +84,12 @@ const add = async (req, res) => {
             [topic_id, question_text, JSON.stringify(options)]
         );
 
-        const question_id = result.rows[0].id;
+        const data = result.rows[0].result;
 
         res.status(201).json({
             message: "Pregunta creada exitosamente",
-            id: question_id
+            question_id: data.question_id,
+            options: data.options
         });
 
     } catch (error) {
@@ -160,11 +161,81 @@ const remove = async (req, res) => {
     }
 };
 
+/* =========================================
+   UPLOAD AN IMAGE FOR AN SPECIFIC OPTION
+========================================= */
+const uploadOptionImage = async (req, res) => {
+    try {
+
+        const { option_id } = req.body;
+
+        if (!req.file) {
+            return res.status(400).json({
+                message: "No se subió ninguna imagen"
+            });
+        }
+
+        if (!option_id) {
+            return res.status(400).json({
+                message: "option_id es requerido"
+            });
+        }
+
+        await pool.query(
+            queries.upsertOptionImage,
+            [
+                option_id,
+                req.file.buffer,
+                req.file.mimetype,
+                req.file.originalname
+            ]
+        );
+
+        res.json({ message: "Imagen guardada correctamente" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Error al subir imagen"
+        });
+    }
+};
+
+/* =========================================
+   GET AN IMAGE FROM AN SPECIFIC OPTION
+========================================= */
+const getOptionImage = async (req, res) => {
+    try {
+
+        const option_id = parseInt(req.params.option_id);
+
+        const result = await pool.query(
+            queries.getOptionImage,
+            [option_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).send("Imagen no encontrada");
+        }
+
+        const img = result.rows[0];
+
+        res.set("Content-Type", img.mime_type);
+        res.send(img.image_data);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error al obtener imagen");
+    }
+};
+
 module.exports = {
     get,
     getById,
     getByTopic,
     add,
     update,
-    remove
+    remove,
+    uploadOptionImage,
+    getOptionImage
 };
