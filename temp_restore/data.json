@@ -1,0 +1,347 @@
+{
+  "roles": [
+    {
+      "id": 1,
+      "name": "admin"
+    },
+    {
+      "id": 2,
+      "name": "student"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password_hash": "$2a$06$wTPVFwrK08SmN2F5dpFnsOhWWHD6ak2tEu7L0D7JvFU3Va5tI5.1e",
+      "role_id": 1,
+      "active": true
+    },
+    {
+      "id": 2,
+      "username": "manuel",
+      "password_hash": "$2a$06$MyKQwCa1XqEyeOEFHVQjoObZLlmwDp9fN0J9ZHlh.uSe6yIvj3zGq",
+      "role_id": 2,
+      "active": true
+    }
+  ],
+  "topics": [
+    {
+      "id": 1,
+      "name": "Programación",
+      "description": "Fundamentos web"
+    }
+  ],
+  "questions": [
+    {
+      "id": 1,
+      "topic_id": 1,
+      "question_text": "¿Qué es una API REST?"
+    },
+    {
+      "id": 2,
+      "topic_id": 1,
+      "question_text": "pregunta de prueba para probar la carga de imagenes"
+    }
+  ],
+  "options": [
+    {
+      "id": 1,
+      "question_id": 1,
+      "option_text": "Es una secuencia de instrucciones que se repite hasta alcanzar una condición específica, evitando reescribir código y automatizando tareas repetitivas.",
+      "is_correct": false
+    },
+    {
+      "id": 2,
+      "question_id": 1,
+      "option_text": "Es una interfaz de programación que permite la comunicación entre sistemas web utilizando métodos HTTP (GET, POST, PUT, DELETE) para gestionar recursos.",
+      "is_correct": true
+    },
+    {
+      "id": 3,
+      "question_id": 1,
+      "option_text": "Una aplicación web que carga una sola página HTML y actualiza el contenido dinámicamente mediante JavaScript sin recargar todo el sitio (ej. React, Angular)",
+      "is_correct": false
+    },
+    {
+      "id": 4,
+      "question_id": 1,
+      "option_text": "Son soluciones reutilizables y bien pensadas a problemas comunes de programación, proporcionando un vocabulario común y estandarizando estructuras.",
+      "is_correct": false
+    },
+    {
+      "id": 5,
+      "question_id": 2,
+      "option_text": null,
+      "is_correct": false
+    },
+    {
+      "id": 6,
+      "question_id": 2,
+      "option_text": "opcion numero 2",
+      "is_correct": false
+    },
+    {
+      "id": 7,
+      "question_id": 2,
+      "option_text": null,
+      "is_correct": true
+    },
+    {
+      "id": 8,
+      "question_id": 2,
+      "option_text": "opcion numero 4",
+      "is_correct": false
+    }
+  ],
+  "exams": [
+    {
+      "id": 1,
+      "name": "Test"
+    }
+  ],
+  "exam_topics": null,
+  "exam_questions": [
+    {
+      "id": 1,
+      "exam_id": 1,
+      "question_id": 1
+    },
+    {
+      "id": 3,
+      "exam_id": 1,
+      "question_id": 2
+    }
+  ],
+  "user_exam_limits": [
+    {
+      "id": 1,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempts_allowed": 0
+    }
+  ],
+  "attempts": [
+    {
+      "id": 1,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 1,
+      "score": 0,
+      "started_at": "2026-03-03T12:22:40.808436",
+      "finished_at": "2026-03-03T12:22:50.583944"
+    },
+    {
+      "id": 2,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 2,
+      "score": 0,
+      "started_at": "2026-03-03T12:23:01.878233",
+      "finished_at": "2026-03-03T12:23:05.350355"
+    },
+    {
+      "id": 3,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 3,
+      "score": 100,
+      "started_at": "2026-03-03T12:23:34.544937",
+      "finished_at": "2026-03-03T12:23:37.286587"
+    },
+    {
+      "id": 4,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 4,
+      "score": 100,
+      "started_at": "2026-03-03T13:04:29.424945",
+      "finished_at": "2026-03-03T13:05:22.782576"
+    },
+    {
+      "id": 5,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 5,
+      "score": 0,
+      "started_at": "2026-03-03T13:24:50.898072",
+      "finished_at": "2026-03-03T13:24:53.71555"
+    },
+    {
+      "id": 6,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 6,
+      "score": 0,
+      "started_at": "2026-03-16T12:07:25.417214",
+      "finished_at": "2026-03-16T12:07:41.095959"
+    },
+    {
+      "id": 7,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 7,
+      "score": 0,
+      "started_at": "2026-03-16T12:11:04.235777",
+      "finished_at": "2026-03-16T12:11:10.164451"
+    },
+    {
+      "id": 8,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 8,
+      "score": 100,
+      "started_at": "2026-03-16T12:59:29.211697",
+      "finished_at": "2026-03-16T12:59:34.159239"
+    },
+    {
+      "id": 9,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 9,
+      "score": null,
+      "started_at": "2026-03-17T15:11:23.324028",
+      "finished_at": null
+    },
+    {
+      "id": 10,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 10,
+      "score": null,
+      "started_at": "2026-03-17T16:03:30.391429",
+      "finished_at": null
+    },
+    {
+      "id": 11,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 11,
+      "score": null,
+      "started_at": "2026-03-17T16:47:45.214476",
+      "finished_at": null
+    },
+    {
+      "id": 12,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 12,
+      "score": null,
+      "started_at": "2026-03-17T16:58:39.072699",
+      "finished_at": null
+    },
+    {
+      "id": 13,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 13,
+      "score": null,
+      "started_at": "2026-03-17T17:37:40.066185",
+      "finished_at": null
+    },
+    {
+      "id": 14,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 14,
+      "score": 50,
+      "started_at": "2026-03-17T17:57:23.974924",
+      "finished_at": "2026-03-17T17:57:29.748234"
+    },
+    {
+      "id": 15,
+      "user_id": 2,
+      "exam_id": 1,
+      "attempt_number": 15,
+      "score": 100,
+      "started_at": "2026-03-17T18:16:11.751694",
+      "finished_at": "2026-03-17T18:16:19.515873"
+    }
+  ],
+  "attempt_answers": [
+    {
+      "id": 1,
+      "attempt_id": 1,
+      "question_id": 1,
+      "selected_option_id": 4,
+      "is_correct": false
+    },
+    {
+      "id": 2,
+      "attempt_id": 2,
+      "question_id": 1,
+      "selected_option_id": 1,
+      "is_correct": false
+    },
+    {
+      "id": 3,
+      "attempt_id": 3,
+      "question_id": 1,
+      "selected_option_id": 2,
+      "is_correct": true
+    },
+    {
+      "id": 4,
+      "attempt_id": 4,
+      "question_id": 1,
+      "selected_option_id": 2,
+      "is_correct": true
+    },
+    {
+      "id": 5,
+      "attempt_id": 5,
+      "question_id": 1,
+      "selected_option_id": 4,
+      "is_correct": false
+    },
+    {
+      "id": 6,
+      "attempt_id": 6,
+      "question_id": 1,
+      "selected_option_id": 3,
+      "is_correct": false
+    },
+    {
+      "id": 7,
+      "attempt_id": 7,
+      "question_id": 1,
+      "selected_option_id": 1,
+      "is_correct": false
+    },
+    {
+      "id": 8,
+      "attempt_id": 8,
+      "question_id": 1,
+      "selected_option_id": 2,
+      "is_correct": true
+    },
+    {
+      "id": 9,
+      "attempt_id": 14,
+      "question_id": 1,
+      "selected_option_id": 2,
+      "is_correct": true
+    },
+    {
+      "id": 10,
+      "attempt_id": 14,
+      "question_id": 2,
+      "selected_option_id": 5,
+      "is_correct": false
+    },
+    {
+      "id": 11,
+      "attempt_id": 15,
+      "question_id": 2,
+      "selected_option_id": 7,
+      "is_correct": true
+    },
+    {
+      "id": 12,
+      "attempt_id": 15,
+      "question_id": 1,
+      "selected_option_id": 2,
+      "is_correct": true
+    }
+  ]
+}

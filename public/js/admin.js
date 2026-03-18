@@ -1111,7 +1111,90 @@ function downloadPDF(user_id) {
     window.open(`${API}/results/user/${user_id}/pdf`, "_blank");
 }
 
+// ================== BASE DE DATOS ==================
 
+// Descargar backup
+document.getElementById("downloadBackupBtn")
+    ?.addEventListener("click", async () => {
+        try {
+            const res = await fetch(`${API}/backup/download`);
+
+            if (!res.ok) throw new Error("Error descargando backup");
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "backup.zip";
+            a.click();
+
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error(error);
+            alert("Error descargando backup");
+        }
+    });
+
+
+// Restaurar backup
+document.getElementById("uploadBackupBtn")
+    ?.addEventListener("click", () => {
+        document.getElementById("uploadBackupInput").click();
+    });
+
+document.getElementById("uploadBackupInput")
+    ?.addEventListener("change", async function () {
+
+        const file = this.files[0];
+        if (!file) return;
+
+        // ✅ VALIDAR TIPO DE ARCHIVO (AQUÍ)
+        if (!file.name.endsWith(".zip")) {
+            alert("Solo se permiten archivos .zip");
+            return;
+        }
+
+        // Confirmación
+        if (!confirm("⚠️ Esto sobrescribirá la base de datos actual. ¿Continuar?")) {
+            return;
+        }
+
+        // ✅ DESHABILITAR BOTÓN (ANTES DE EMPEZAR)
+        const btn = document.getElementById("uploadBackupBtn");
+        btn.disabled = true;
+
+        // ✅ LOADING (ANTES DEL FETCH)
+        alert("Restaurando backup... esto puede tardar unos segundos");
+
+        const formData = new FormData();
+        formData.append("backup", file);
+
+        try {
+            const res = await fetch(`${API}/backup/restore`, {
+                method: "POST",
+                body: formData
+            });
+
+            if (!res.ok) throw new Error("Error restaurando");
+
+            alert("Base de datos restaurada correctamente");
+
+            // Recargar datos
+            loadDashboard();
+
+        } catch (error) {
+            console.error(error);
+            alert("Error restaurando backup");
+        } finally {
+            // ✅ VOLVER A HABILITAR BOTÓN (SIEMPRE)
+            btn.disabled = false;
+
+            // Opcional: limpiar input
+            this.value = "";
+        }
+    });
 
 // ================== LOGOUT ==================
 document.getElementById("logoutBtn")

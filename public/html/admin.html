@@ -23,6 +23,7 @@
                     <li data-section="exams">Exámenes</li>
                     <li data-section="users">Usuarios</li>
                     <li data-section="results">Resultados</li>
+                    <li data-section="database">Base de datos</li>
                 </ul>
             </nav>
             <button id="logoutBtn" class="logout-btn">Cerrar Sesión</button>
@@ -179,6 +180,27 @@
                         <tbody id="resultsTable"></tbody>
                     </table>
                 </div>
+            </section>
+
+            <!-- Base de datos -->
+            <section id="database" class="section">
+                <h1>Gestión de Base de Datos</h1>
+
+                <div class="action-bar">
+                    <button id="downloadBackupBtn" class="btn-primary">
+                        📥 Descargar Backup
+                    </button>
+
+                    <input type="file" id="uploadBackupInput" accept=".zip" hidden>
+
+                    <button id="uploadBackupBtn">
+                        📤 Restaurar Backup
+                    </button>
+                </div>
+
+                <p style="margin-top:10px;">
+                    Descarga o restaura toda la base de datos (JSON + imágenes).
+                </p>
             </section>
 
         </main>
