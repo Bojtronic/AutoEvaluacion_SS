@@ -1052,10 +1052,12 @@ async function openUserModal(user = null) {
         </div>
 
         <div class="form-group">
-            <label>
-                <input type="checkbox" id="userActive"
+            <label class="checkbox-label">
+                <span>Activo</span>
+                <input 
+                    type="checkbox" 
+                    id="userActive"
                     ${!user || user.active ? "checked" : ""}>
-                Activo
             </label>
         </div>
 
