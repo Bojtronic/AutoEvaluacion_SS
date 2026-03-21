@@ -108,11 +108,15 @@ DECLARE
     item JSON;
 BEGIN
 
+    -- ================= LIMPIAR BD =================
     PERFORM fn_backup_clear_all();
 
     -- ================= ROLES =================
     FOR item IN 
-        SELECT * FROM json_array_elements(COALESCE(p_data->'roles', '[]'::json))
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'roles') = 'array'
+            THEN p_data->'roles' ELSE '[]'::json END
+        )
     LOOP
         INSERT INTO roles(id, name)
         VALUES (
@@ -123,7 +127,10 @@ BEGIN
 
     -- ================= USERS =================
     FOR item IN 
-        SELECT * FROM json_array_elements(COALESCE(p_data->'users', '[]'::json))
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'users') = 'array'
+            THEN p_data->'users' ELSE '[]'::json END
+        )
     LOOP
         INSERT INTO users(id, username, password_hash, role_id, active)
         VALUES (
@@ -137,7 +144,10 @@ BEGIN
 
     -- ================= TOPICS =================
     FOR item IN 
-        SELECT * FROM json_array_elements(COALESCE(p_data->'topics', '[]'::json))
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'topics') = 'array'
+            THEN p_data->'topics' ELSE '[]'::json END
+        )
     LOOP
         INSERT INTO topics(id, name, description)
         VALUES (
@@ -149,7 +159,10 @@ BEGIN
 
     -- ================= QUESTIONS =================
     FOR item IN 
-        SELECT * FROM json_array_elements(COALESCE(p_data->'questions', '[]'::json))
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'questions') = 'array'
+            THEN p_data->'questions' ELSE '[]'::json END
+        )
     LOOP
         INSERT INTO questions(id, topic_id, question_text)
         VALUES (
@@ -161,7 +174,10 @@ BEGIN
 
     -- ================= OPTIONS =================
     FOR item IN 
-        SELECT * FROM json_array_elements(COALESCE(p_data->'options', '[]'::json))
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'options') = 'array'
+            THEN p_data->'options' ELSE '[]'::json END
+        )
     LOOP
         INSERT INTO options(id, question_id, option_text, is_correct)
         VALUES (
@@ -174,7 +190,10 @@ BEGIN
 
     -- ================= EXAMS =================
     FOR item IN 
-        SELECT * FROM json_array_elements(COALESCE(p_data->'exams', '[]'::json))
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'exams') = 'array'
+            THEN p_data->'exams' ELSE '[]'::json END
+        )
     LOOP
         INSERT INTO exams(id, name)
         VALUES (
@@ -183,9 +202,12 @@ BEGIN
         );
     END LOOP;
 
-    -- ================= RELACIONES =================
+    -- ================= EXAM_TOPICS =================
     FOR item IN 
-        SELECT * FROM json_array_elements(COALESCE(p_data->'exam_topics', '[]'::json))
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'exam_topics') = 'array'
+            THEN p_data->'exam_topics' ELSE '[]'::json END
+        )
     LOOP
         INSERT INTO exam_topics(id, exam_id, topic_id)
         VALUES (
@@ -195,8 +217,12 @@ BEGIN
         );
     END LOOP;
 
+    -- ================= EXAM_QUESTIONS =================
     FOR item IN 
-        SELECT * FROM json_array_elements(COALESCE(p_data->'exam_questions', '[]'::json))
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'exam_questions') = 'array'
+            THEN p_data->'exam_questions' ELSE '[]'::json END
+        )
     LOOP
         INSERT INTO exam_questions(id, exam_id, question_id)
         VALUES (
@@ -205,6 +231,71 @@ BEGIN
             (item->>'question_id')::INT
         );
     END LOOP;
+
+    -- ================= USER_EXAM_LIMITS =================
+    FOR item IN 
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'user_exam_limits') = 'array'
+            THEN p_data->'user_exam_limits' ELSE '[]'::json END
+        )
+    LOOP
+        INSERT INTO user_exam_limits(id, user_id, exam_id, attempts_allowed)
+        VALUES (
+            (item->>'id')::INT,
+            (item->>'user_id')::INT,
+            (item->>'exam_id')::INT,
+            (item->>'attempts_allowed')::INT
+        );
+    END LOOP;
+
+    -- ================= ATTEMPTS =================
+    FOR item IN 
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'attempts') = 'array'
+            THEN p_data->'attempts' ELSE '[]'::json END
+        )
+    LOOP
+        INSERT INTO attempts(id, user_id, exam_id, attempt_number, score, started_at, finished_at)
+        VALUES (
+            (item->>'id')::INT,
+            (item->>'user_id')::INT,
+            (item->>'exam_id')::INT,
+            (item->>'attempt_number')::INT,
+            (item->>'score')::NUMERIC,
+            (item->>'started_at')::TIMESTAMP,
+            (item->>'finished_at')::TIMESTAMP
+        );
+    END LOOP;
+
+    -- ================= ATTEMPT_ANSWERS =================
+    FOR item IN 
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data->'attempt_answers') = 'array'
+            THEN p_data->'attempt_answers' ELSE '[]'::json END
+        )
+    LOOP
+        INSERT INTO attempt_answers(id, attempt_id, question_id, selected_option_id, is_correct)
+        VALUES (
+            (item->>'id')::INT,
+            (item->>'attempt_id')::INT,
+            (item->>'question_id')::INT,
+            (item->>'selected_option_id')::INT,
+            (item->>'is_correct')::BOOLEAN
+        );
+    END LOOP;
+
+    -- ================= RESET SEQUENCES =================
+    PERFORM setval('roles_id_seq', COALESCE((SELECT MAX(id) FROM roles), 1));
+    PERFORM setval('users_id_seq', COALESCE((SELECT MAX(id) FROM users), 1));
+    PERFORM setval('topics_id_seq', COALESCE((SELECT MAX(id) FROM topics), 1));
+    PERFORM setval('questions_id_seq', COALESCE((SELECT MAX(id) FROM questions), 1));
+    PERFORM setval('options_id_seq', COALESCE((SELECT MAX(id) FROM options), 1));
+    PERFORM setval('exams_id_seq', COALESCE((SELECT MAX(id) FROM exams), 1));
+    PERFORM setval('exam_topics_id_seq', COALESCE((SELECT MAX(id) FROM exam_topics), 1));
+    PERFORM setval('exam_questions_id_seq', COALESCE((SELECT MAX(id) FROM exam_questions), 1));
+    PERFORM setval('user_exam_limits_id_seq', COALESCE((SELECT MAX(id) FROM user_exam_limits), 1));
+    PERFORM setval('attempts_id_seq', COALESCE((SELECT MAX(id) FROM attempts), 1));
+    PERFORM setval('attempt_answers_id_seq', COALESCE((SELECT MAX(id) FROM attempt_answers), 1));
 
 END;
 $$ LANGUAGE plpgsql;
@@ -219,17 +310,20 @@ $$ LANGUAGE plpgsql;
 
 
 
-CREATE OR REPLACE FUNCTION fn_backup_restore_images(p_images JSON)
+CREATE OR REPLACE FUNCTION fn_backup_restore_images(p_data JSON)
 RETURNS VOID AS $$
 DECLARE
     item JSON;
 BEGIN
 
-    FOR item IN SELECT * FROM json_array_elements(p_images)
+    FOR item IN 
+        SELECT * FROM json_array_elements(
+            CASE WHEN json_typeof(p_data) = 'array'
+            THEN p_data ELSE '[]'::json END
+        )
     LOOP
-        INSERT INTO option_images(id, option_id, image_data, mime_type, file_name)
+        INSERT INTO option_images(option_id, image_data, mime_type, file_name)
         VALUES (
-            (item->>'id')::INT,
             (item->>'option_id')::INT,
             decode(item->>'image_data', 'base64'),
             item->>'mime_type',
