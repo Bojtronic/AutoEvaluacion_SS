@@ -29,13 +29,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-
-
 ------------------------------------------------------------------------------------------------
-
-
-
 
 CREATE OR REPLACE FUNCTION fn_backup_get_images()
 RETURNS JSON AS $$
@@ -60,17 +54,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-
-
-
-
-
 ----------------------------------------------------------------------------------------------
-
-
-
-
 
 CREATE OR REPLACE FUNCTION fn_backup_clear_all()
 RETURNS VOID AS $$
@@ -91,16 +75,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-
-
-
-
 ------------------------------------------------------------------------------------------------
-
-
-
-
 
 CREATE OR REPLACE FUNCTION fn_backup_restore(p_data JSON)
 RETURNS VOID AS $$
@@ -300,15 +275,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-
-
-
 -----------------------------------------------------------------------------------------------
-
-
-
-
 
 CREATE OR REPLACE FUNCTION fn_backup_restore_images(p_data JSON)
 RETURNS VOID AS $$
@@ -333,11 +300,6 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql;
-
-
-
-
-
 
 ------------------------------------------------------------------------------------------------
 
