@@ -270,6 +270,82 @@ button {
     margin-bottom: 10px;
 }
 
+
+
+
+
+
+/* Bloque de cada opción */
+.option-block {
+    background: #0f172a;
+    border: 1px solid #334155;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    transition: 0.2s;
+}
+
+.option-block:hover {
+    border-color: #38bdf8;
+}
+
+/* Texto de opción */
+.optionText {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.6rem;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background-color: #e5e7eb;
+    color: #000;
+    transition: 0.2s;
+}
+
+.optionText:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
+}
+
+/* Input de imagen */
+.optionImage {
+    width: 100%;
+    padding: 0.4rem;
+    border-radius: 8px;
+    border: 1px dashed #64748b;
+    background: #465874;
+    color: #e5e7eb;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.optionImage:hover {
+    border-color: #38bdf8;
+    background: #0f172a;
+}
+
+/* Texto del label dentro del bloque */
+.option-block strong {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: #38bdf8;
+}
+
+.optionImage::file-selector-button {
+    background: #38bdf8;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    color: #020617;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.optionImage::file-selector-button:hover {
+    background: #0ea5e9;
+}
+
 /* ===============================
    RESPONSIVE DESIGN
 ================================= */

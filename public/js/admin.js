@@ -261,12 +261,12 @@ document.getElementById("addQuestionBtn")
                 <label>Enunciado</label>
                 <textarea id="questionText"></textarea>
 
-                <label>Opciones</label>
-
+                <label>Opciones (si se incluyen imágenes deben ser en formato PNG, JPG, JPEG)</label>
+                <br>
                 ${[1, 2, 3, 4].map(i => `
                     <div class="option-block">
                         <strong>Opción ${i}</strong>
-                        <input type="text" class="optionText" placeholder="Texto (opcional)">
+                        <input type="text" class="optionText" placeholder="Texto">
                         <input type="file" class="optionImage" accept="image/*">
                     </div>
                 `).join("")}
